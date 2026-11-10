@@ -4,6 +4,7 @@ import type {
   PermissionModeId,
   ReadyTopic,
 } from '../types/learning';
+import { InteractiveLab } from './InteractiveLab';
 
 interface LessonViewerProps {
   readonly topic: ReadyTopic;
@@ -16,7 +17,8 @@ export type LessonSectionId =
   | 'workflow'
   | 'tiers'
   | 'permissions'
-  | 'commands';
+  | 'commands'
+  | 'lab';
 
 export interface SectionNavItem {
   readonly id: LessonSectionId;
@@ -65,6 +67,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
               ? '3 เสาหลัก Sandbox ปลอดภัย'
               : 'ภาพรวม 3 เสาหลัก',
       icon: '🏛️',
+    },
+    {
+      id: 'lab',
+      labelTh: '🧪 ห้องทดลอง Interactive Lab',
+      icon: '🧪',
     },
     {
       id: 'layers',
@@ -219,6 +226,12 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                   </div>
                 ))}
               </div>
+            </section>
+          )}
+
+          {activeSection === 'lab' && (
+            <section className="lesson-section">
+              <InteractiveLab topicId={topic.id} />
             </section>
           )}
 

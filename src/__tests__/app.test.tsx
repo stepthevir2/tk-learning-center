@@ -407,4 +407,55 @@ describe('TK Learning Center', () => {
       screen.getByRole('heading', { name: /หมวดหมู่ความรู้ทั้งหมด/i }),
     ).toBeInTheDocument();
   });
+
+  it('switches to and interacts with the Interactive Labs across lessons', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    // 1. Test React Virtual DOM Lab
+    await user.click(screen.getByRole('button', { name: /Frontend & React/i }));
+    await user.click(
+      screen.getByRole('button', {
+        name: /เข้าสู่บทเรียน React Visual Learning/i,
+      }),
+    );
+
+    const sidebar = screen.getByLabelText(/สารบัญบทเรียน/i);
+    await user.click(
+      within(sidebar).getByRole('button', {
+        name: /ห้องทดลอง Interactive Lab/i,
+      }),
+    );
+
+    expect(screen.getByTestId('react-visual-lab')).toBeInTheDocument();
+    expect(screen.getByText(/Virtual DOM Tree/i)).toBeInTheDocument();
+
+    // Interact with counter in lab
+    await user.click(screen.getByRole('button', { name: /\+ เพิ่มค่า/i }));
+    expect(screen.getByText(/State เปลี่ยนเป็น count = 1/i)).toBeInTheDocument();
+
+    // Go back to hub
+    await user.click(screen.getByRole('button', { name: /กลับหน้าหมวดหมู่/i }));
+
+    // 2. Test Docker Sandbox Lab
+    await user.click(screen.getByRole('button', { name: /System Architecture/i }));
+    await user.click(
+      screen.getByRole('button', {
+        name: /เข้าสู่บทเรียน Docker & Sandbox Execution/i,
+      }),
+    );
+
+    const dockerSidebar = screen.getByLabelText(/สารบัญบทเรียน/i);
+    await user.click(
+      within(dockerSidebar).getByRole('button', {
+        name: /ห้องทดลอง Interactive Lab/i,
+      }),
+    );
+
+    expect(screen.getByTestId('docker-sandbox-lab')).toBeInTheDocument();
+    await user.click(
+      screen.getByRole('button', { name: /1\. 🚀 สร้าง Container/i }),
+    );
+    expect(screen.getByText(/คอนเทนเนอร์ชั่วคราวเปิดทำงาน/i)).toBeInTheDocument();
+  });
 });
