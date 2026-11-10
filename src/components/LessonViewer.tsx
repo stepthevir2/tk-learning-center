@@ -250,6 +250,62 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
           </div>
         </div>
       </section>
+
+      {content.commandGroups && content.commandGroups.length > 0 && (
+        <section aria-labelledby="commands-heading" className="lesson-section">
+          <h3 id="commands-heading" className="section-title">
+            คลังคำสั่งและคีย์ลัดทั้งหมด (Command Reference & CLI Catalog)
+          </h3>
+          <p className="section-subtitle">
+            รวมคำสั่ง Slash Commands ที่สามารถพิมพ์สั่งการได้ทั้งในเทอร์มินัล CLI และผ่าน Gateway แชท
+          </p>
+
+          <div className="command-groups-container">
+            {content.commandGroups.map((group) => (
+              <div key={group.groupTitleTh} className="command-group-card">
+                <div className="command-group-header">
+                  <h4 className="command-group-title">{group.groupTitleTh}</h4>
+                  <p className="command-group-desc">{group.groupDescriptionTh}</p>
+                </div>
+
+                <div className="command-table-wrap">
+                  <table className="command-table">
+                    <thead>
+                      <tr>
+                        <th>คำสั่ง (Command)</th>
+                        <th>ตัวอย่างการใช้งาน (Usage)</th>
+                        <th>คำอธิบาย (Description)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.commands.map((cmd) => (
+                        <tr key={cmd.command}>
+                          <td className="cmd-cell">
+                            <code>{cmd.command}</code>
+                            {cmd.aliases && (
+                              <div className="cmd-aliases">
+                                {cmd.aliases.map((alias) => (
+                                  <span key={alias} className="alias-tag">
+                                    {alias}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </td>
+                          <td className="usage-cell">
+                            <code>{cmd.usageTh}</code>
+                          </td>
+                          <td className="desc-cell">{cmd.descriptionTh}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </article>
   );
 }

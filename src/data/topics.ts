@@ -219,6 +219,262 @@ export const TOPICS = [
           blocklistPolicyTh: 'บล็อกการเชื่อมต่อเน็ตเวิร์กภายนอกทั้งหมด',
         },
       ],
+      commandGroups: [
+        {
+          groupTitleTh: '1. จัดการเซสชัน & ประวัติการสนทนา (Session & History)',
+          groupDescriptionTh: 'คำสั่งสำหรับควบคุมบทสนทนา แยกสายความคิด และบีบอัด Context',
+          commands: [
+            {
+              command: '/new [name]',
+              aliases: ['/reset'],
+              usageTh: '/new my-research หรือ /new now',
+              descriptionTh: 'เริ่มเซสชันใหม่ เคลียร์บริบทให้ว่างเปล่า พร้อมตั้งชื่อหัวข้อใหม่ (ใส่ now เพื่อข้ามการกดยืนยัน)',
+            },
+            {
+              command: '/resume [name|id]',
+              usageTh: '/resume 7fed7d3e หรือ /resume dev-session',
+              descriptionTh: 'เปิดเซสชันเดิมที่เคยคุยค้างไว้กลับมาทำงานต่อ โดยดึงประวัติจากฐานข้อมูล SQLite',
+            },
+            {
+              command: '/sessions',
+              usageTh: '/sessions',
+              descriptionTh: 'เปิดเมนูแบบ Interactive เพื่อค้นหาและเลือกดูประวัติเซสชันทั้งหมดในระบบ',
+            },
+            {
+              command: '/branch [name]',
+              aliases: ['/fork'],
+              usageTh: '/branch alternative-approach',
+              descriptionTh: 'แตกกิ่งบทสนทนาจากจุดปัจจุบัน เพื่อทดลองแนวทางแก้ปัญหาอื่นโดยไม่กระทบสายเดิม',
+            },
+            {
+              command: '/split [name]',
+              usageTh: '/split new-task',
+              descriptionTh: 'แตกกิ่งเซสชันและเปิดออกเป็นหน้าต่างเทอร์มินัลใหม่ทันที',
+            },
+            {
+              command: '/undo',
+              usageTh: '/undo',
+              descriptionTh: 'ยกเลิกข้อความและการเรียกเครื่องมือในรอบล่าสุด (Turn) ออกจากการสนทนา',
+            },
+            {
+              command: '/compress [here [N]]',
+              aliases: ['/compact'],
+              usageTh: '/compress หรือ /compress here 3',
+              descriptionTh: 'สั่งบีบอัดประวัติการสนทนาเก่าเพื่อคืนพื้นที่ Token โดยรักษาข้อความ N รอบล่าสุดไว้ครบถ้วน',
+            },
+            {
+              command: '/handoff <platform>',
+              usageTh: '/handoff telegram หรือ /handoff discord',
+              descriptionTh: 'โอนย้ายเซสชันการทำงานปัจจุบันไปยังแอปส่งข้อความภายนอกเพื่อคุยต่อผ่านมือถือ',
+            },
+          ],
+        },
+        {
+          groupTitleTh: '2. ควบคุมงานอัตโนมัติ & Subagents (Execution & Automation)',
+          groupDescriptionTh: 'คำสั่งสำหรับตั้งเป้าหมายระยะยาว สั่งวนลูป และกระจายงานตัวลูก',
+          commands: [
+            {
+              command: '/goal <prompt>',
+              usageTh: '/goal สร้าง REST API พร้อมเขียน test ทั้งหมด',
+              descriptionTh: 'ตั้งเป้าหมายระยะยาวให้ระบบทำงานต่อเนื่องผ่าน Ralph loop จนกว่าจะสำเร็จ (มี /goal pause, resume, clear)',
+            },
+            {
+              command: '/subgoal',
+              usageTh: '/subgoal หรือ /subgoal remove 2',
+              descriptionTh: 'ตรวจสอบหรือลบเป้าหมายย่อยที่ Agent แตกออกมาจาก /goal หลัก',
+            },
+            {
+              command: '/stop',
+              usageTh: '/stop',
+              descriptionTh: 'สั่งหยุดการรันเครื่องมือ งานเบื้องหลัง หรือหยุด Subagent ที่กำลังทำงานอยู่ทันที',
+            },
+            {
+              command: '/queue <prompt>',
+              aliases: ['/q'],
+              usageTh: '/queue ตรวจสอบโค้ดหลังรันเทสต์เสร็จ',
+              descriptionTh: 'ต่อคิวคำสั่งให้ทำในรอบถัดไปโดยไม่ขัดจังหวะรอบคำตอบที่กำลังพิมพ์อยู่',
+            },
+            {
+              command: '/loop [interval] <prompt>',
+              usageTh: '/loop 5m git pull && npm test',
+              descriptionTh: 'สั่งให้รันคำสั่งซ้ำตามช่วงเวลาที่กำหนดอย่างสม่ำเสมอ',
+            },
+            {
+              command: '/background <prompt>',
+              aliases: ['/bg'],
+              usageTh: '/bg ค้นคว้าเอกสารไลบรารีใหม่',
+              descriptionTh: 'แตกงานออกไปรันใน Subagent เบื้องหลัง แยกพื้นที่บริบทไม่ให้รบกวนหน้าต่างหลัก',
+            },
+            {
+              command: '/agents',
+              aliases: ['/tasks'],
+              usageTh: '/agents',
+              descriptionTh: 'แสดงรายการ Subagents และงาน Background tasks ทั้งหมดที่กำลังรันอยู่',
+            },
+            {
+              command: '/steer <instruction>',
+              usageTh: '/steer ให้เขียนโค้ดด้วย TypeScript เท่านั้น',
+              descriptionTh: 'ส่งคำสั่งแทรกเพื่อปรับทิศทางการคิดของ Agent กลางคันโดยไม่ต้องเริ่มใหม่',
+            },
+            {
+              command: '/btw <question>',
+              usageTh: '/btw ฟังก์ชันนี้ใช้หน่วยความจำเท่าไหร่?',
+              descriptionTh: 'ถามคำถามแทรกด่วนชั่วคราวโดยไม่บันทึกลงในประวัติแชทหลักและไม่เรียกใช้เครื่องมือ',
+            },
+          ],
+        },
+        {
+          groupTitleTh: '3. สลับโมเดล & ตั้งค่าระบบ (Models & Configuration)',
+          groupDescriptionTh: 'คำสั่งเลือก AI Provider ปรับแต่งความละเอียด และบุคลิกภาพ',
+          commands: [
+            {
+              command: '/model [model-name]',
+              usageTh: '/model claude-sonnet-4 หรือ /model --global',
+              descriptionTh: 'แสดงชื่อโมเดลปัจจุบัน หรือสลับโมเดลกลางเซสชันได้ทันที (ใส่ --global เพื่อบันทึกลง config.yaml)',
+            },
+            {
+              command: '/models',
+              usageTh: '/models',
+              descriptionTh: 'เปิดเมนู Interactive ให้เลือกและค้นหาโมเดลจาก 200+ รายการผ่าน Providers ต่าง ๆ',
+            },
+            {
+              command: '/config',
+              usageTh: '/config',
+              descriptionTh: 'แสดงค่า Configuration ปัจจุบันของระบบ Hermes Agent ทั้งหมด',
+            },
+            {
+              command: '/personality',
+              usageTh: '/personality',
+              descriptionTh: 'สลับหรือดูบุคลิกภาพที่ตั้งค่าไว้ล่วงหน้าของตัวแทน AI',
+            },
+            {
+              command: '/verbose',
+              usageTh: '/verbose',
+              descriptionTh: 'สลับระดับการแสดงผลลัพธ์ของเครื่องมือ (วนลูป: off → new → all → verbose)',
+            },
+          ],
+        },
+        {
+          groupTitleTh: '4. จัดการเครื่องมือ & ทักษะ (Tools, Skills & MCP)',
+          groupDescriptionTh: 'คำสั่งเปิด/ปิดเครื่องมือ โหลดทักษะที่ Agent สร้างขึ้น และรีโหลด MCP',
+          commands: [
+            {
+              command: '/tools [list|enable|disable] [name...]',
+              usageTh: '/tools list หรือ /tools disable terminal',
+              descriptionTh: 'ตรวจสอบรายการเครื่องมือทั้งหมด หรือเปิด/ปิดการใช้งานเฉพาะเครื่องมือในเซสชันนี้',
+            },
+            {
+              command: '/toolsets',
+              usageTh: '/toolsets',
+              descriptionTh: 'แสดงกลุ่มชุดเครื่องมือที่มีให้ใช้ เช่น terminal, web, skills, browser',
+            },
+            {
+              command: '/skills',
+              usageTh: '/skills',
+              descriptionTh: 'เปิดหน้าต่างค้นหา ตรวจสอบ ติดตั้ง หรือลบทักษะ Procedural Skills ในเครื่อง',
+            },
+            {
+              command: '/skill <name>',
+              usageTh: '/skill code-refactor',
+              descriptionTh: 'สั่งโหลดและเรียกใช้งาน Skill ที่ติดตั้งไว้แบบเฉพาะเจาะจง',
+            },
+            {
+              command: '/<skill-name>',
+              usageTh: '/refactor หรือ /test-suite',
+              descriptionTh: 'เรียกใช้ Skill โดยตรงเหมือนคำสั่งประจำตัว (ทุก Skill จะสร้าง Slash command ของตัวเองอัตโนมัติ)',
+            },
+            {
+              command: '/reload-skills',
+              usageTh: '/reload-skills',
+              descriptionTh: 'สแกนโฟลเดอร์และโหลดทักษะที่ Agent หรือผู้ใช้เพิ่งสร้างใหม่เข้าสู่ระบบทันที',
+            },
+            {
+              command: '/reload-mcp',
+              usageTh: '/reload-mcp',
+              descriptionTh: 'ล้างแคชและเชื่อมต่อกับเซิร์ฟเวอร์ Model Context Protocol (MCP) ภายนอกใหม่อีกครั้ง',
+            },
+            {
+              command: '/browser [connect|disconnect|status]',
+              usageTh: '/browser status หรือ /browser connect',
+              descriptionTh: 'ควบคุมการเชื่อมต่อกับเว็บเบราว์เซอร์ Chromium ในเครื่องสำหรับงาน Automation',
+            },
+          ],
+        },
+        {
+          groupTitleTh: '5. ตรวจสอบสถานะ & ค่าใช้จ่าย (Status, Info & Inspection)',
+          groupDescriptionTh: 'คำสั่งเช็ค Token ค่าบริการ ความจำ และรายงานระบบ',
+          commands: [
+            {
+              command: '/help [topic]',
+              usageTh: '/help หรือ /help model',
+              descriptionTh: 'เปิดคู่มือช่วยเหลือและคำอธิบายคำสั่งแต่ละประเภท',
+            },
+            {
+              command: '/status',
+              usageTh: '/status',
+              descriptionTh: 'แสดงสถานะการทำงาน ขนาดของ Context Window ปัจจุบัน และจำนวน Token ที่ใช้ไป',
+            },
+            {
+              command: '/usage',
+              aliases: ['/cost'],
+              usageTh: '/usage หรือ /cost',
+              descriptionTh: 'แสดงสถิติการใช้งาน Token อย่างละเอียด พร้อมคำนวณค่าบริการ (USD) และโควตาที่เหลือ',
+            },
+            {
+              command: '/journey',
+              usageTh: '/journey',
+              descriptionTh: 'แสดงไทม์ไลน์การเรียนรู้ ประสบการณ์ ความจำ และทักษะใหม่ที่ Agent สรุปสะสมไว้ตลอดเวลา',
+            },
+            {
+              command: '/history',
+              usageTh: '/history',
+              descriptionTh: 'พิมพ์ประวัติบทสนทนาและผลลัพธ์ของเครื่องมือย้อนหลังออกมาทั้งหมด',
+            },
+            {
+              command: '/whoami',
+              usageTh: '/whoami',
+              descriptionTh: 'แสดงระดับสิทธิ์การเข้าถึงของผู้ใช้ปัจจุบัน (admin / user)',
+            },
+            {
+              command: '/gateway',
+              usageTh: '/gateway',
+              descriptionTh: 'ตรวจสอบสถานะการเชื่อมต่อของ Messaging Gateway กับแพลตฟอร์มต่าง ๆ (Telegram, Discord ฯลฯ)',
+            },
+          ],
+        },
+        {
+          groupTitleTh: '6. เครื่องมือเสริมในเทอร์มินัล & ออกจากโปรแกรม (CLI Helpers & Exit)',
+          groupDescriptionTh: 'คีย์ลัด คัดลอกข้อความ แนบรูปภาพ และการปิดเซสชัน',
+          commands: [
+            {
+              command: '/copy [N]',
+              usageTh: '/copy หรือ /copy 2',
+              descriptionTh: 'คัดลอกคำตอบล่าสุดของ Agent (หรือคำตอบที่ N ย้อนหลัง) ลง Clipboard ของระบบ',
+            },
+            {
+              command: '/image <path>',
+              usageTh: '/image ./screenshot.png',
+              descriptionTh: 'แนบไฟล์รูปภาพในเครื่องส่งไปพร้อมกับข้อความถัดไปให้โมเดลวิเคราะห์',
+            },
+            {
+              command: '/palette หรือ Ctrl+P',
+              usageTh: 'กด Ctrl+P หรือพิมพ์ /palette',
+              descriptionTh: 'เปิดหน้าต่างค้นหาคำสั่งและทักษะทั้งหมดแบบ Fuzzy Search คล้าย Command Palette ใน VS Code',
+            },
+            {
+              command: '/clear',
+              usageTh: '/clear',
+              descriptionTh: 'เคลียร์หน้าจอเทอร์มินัลให้โล่ง สะอาดตา',
+            },
+            {
+              command: '/quit',
+              aliases: ['/exit'],
+              usageTh: '/quit หรือ /quit --delete',
+              descriptionTh: 'ออกจากโปรแกรม CLI (ใส่ --delete หากต้องการลบข้อมูลเซสชันนี้ทิ้งจากฐานข้อมูล state.db)',
+            },
+          ],
+        },
+      ],
     },
   },
   {

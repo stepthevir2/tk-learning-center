@@ -798,3 +798,102 @@ body {
   color: var(--text-primary);
   line-height: 1.5;
 }
+
+.command-groups-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.command-group-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.command-group-header {
+  margin-bottom: 1rem;
+}
+
+.command-group-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.command-group-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.command-table-wrap {
+  overflow-x: auto;
+}
+
+.command-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.command-table th {
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  padding: 0.65rem 0.85rem;
+  border-bottom: 2px solid var(--border-subtle);
+  font-weight: 600;
+}
+
+.command-table td {
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: top;
+}
+
+.command-table tr:hover {
+  background: var(--bg-card-hover);
+}
+
+.cmd-cell code {
+  color: var(--accent-blue);
+  background: rgba(88, 166, 255, 0.15);
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.cmd-aliases {
+  margin-top: 0.35rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.alias-tag {
+  font-size: 0.72rem;
+  color: var(--accent-purple);
+  background: rgba(188, 140, 255, 0.15);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.usage-cell code {
+  color: #ffa657;
+  background: var(--bg-primary);
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-family: var(--font-mono);
+}
+
+.desc-cell {
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+

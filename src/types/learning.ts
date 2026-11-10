@@ -65,6 +65,19 @@ export interface OverviewPillar {
   readonly descriptionTh: string;
 }
 
+export interface CommandItem {
+  readonly command: string;
+  readonly aliases?: NonEmptyArray<string>;
+  readonly usageTh: string;
+  readonly descriptionTh: string;
+}
+
+export interface CommandGroup {
+  readonly groupTitleTh: string;
+  readonly groupDescriptionTh: string;
+  readonly commands: NonEmptyArray<CommandItem>;
+}
+
 export interface LessonContent {
   readonly headlineTh: string;
   readonly introTh: string;
@@ -73,6 +86,7 @@ export interface LessonContent {
   readonly workflowSteps: NonEmptyArray<WorkflowStep>;
   readonly contextTiers: NonEmptyArray<ContextTier>;
   readonly permissionProfiles: NonEmptyArray<PermissionProfile>;
+  readonly commandGroups?: NonEmptyArray<CommandGroup>;
 }
 
 export interface ReadyTopic {

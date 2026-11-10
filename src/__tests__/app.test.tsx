@@ -149,4 +149,26 @@ describe('TK Learning Center', () => {
       within(permissionPanel).getByText(/ถามผู้ใช้ทุกครั้งก่อนรันเครื่องมือ/i),
     ).toBeInTheDocument();
   });
+
+  it('renders the Hermes Agent command reference catalog with categorized slash commands', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', { name: /เข้าสู่บทเรียน Hermes Agent/i }),
+    );
+
+    expect(
+      screen.getByRole('heading', {
+        name: /คลังคำสั่งและคีย์ลัดทั้งหมด \(Command Reference & CLI Catalog\)/i,
+      }),
+    ).toBeInTheDocument();
+
+    expect(screen.getByText('/new [name]')).toBeInTheDocument();
+    expect(screen.getByText('/resume [name|id]')).toBeInTheDocument();
+    expect(screen.getByText('/goal <prompt>')).toBeInTheDocument();
+    expect(screen.getByText('/tools [list|enable|disable] [name...]')).toBeInTheDocument();
+    expect(screen.getByText('/usage')).toBeInTheDocument();
+    expect(screen.getByText('/quit')).toBeInTheDocument();
+  });
 });
