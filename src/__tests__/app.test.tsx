@@ -315,4 +315,96 @@ describe('TK Learning Center', () => {
       screen.getByRole('heading', { name: /หมวดหมู่ความรู้ทั้งหมด/i }),
     ).toBeInTheDocument();
   });
+
+  it('opens and interacts with the Model Context Protocol (MCP) lesson', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const launchBtn = screen.getByRole('button', {
+      name: /เข้าสู่บทเรียน Model Context Protocol \(MCP\)/i,
+    });
+    expect(launchBtn).toBeInTheDocument();
+
+    await user.click(launchBtn);
+
+    // Verify headline and overview section
+    expect(
+      screen.getByRole('heading', {
+        name: /Model Context Protocol \(MCP\) ทำงานอย่างไร/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Universal Open Standard/i)).toBeInTheDocument();
+
+    const sidebar = screen.getByLabelText(/สารบัญบทเรียน/i);
+
+    // Switch to workflow section via left-hand sidebar
+    await user.click(
+      within(sidebar).getByRole('button', {
+        name: /ขั้นตอนการเชื่อมต่อ & รัน Tool/i,
+      }),
+    );
+    expect(screen.getByText(/LLM เลือกใช้เครื่องมือ/i)).toBeInTheDocument();
+
+    // Switch to commands section via left-hand sidebar
+    await user.click(
+      within(sidebar).getByRole('button', {
+        name: /คลังคำสั่ง MCP Protocol & Tools/i,
+      }),
+    );
+    expect(screen.getByText('tools/list')).toBeInTheDocument();
+    expect(screen.getByText('tools/call')).toBeInTheDocument();
+    expect(screen.getByText('resources/read')).toBeInTheDocument();
+
+    // Go back to hub
+    await user.click(screen.getByRole('button', { name: /กลับหน้าหมวดหมู่/i }));
+    expect(
+      screen.getByRole('heading', { name: /หมวดหมู่ความรู้ทั้งหมด/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('opens and interacts with the Docker & Sandbox Execution lesson', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const launchBtn = screen.getByRole('button', {
+      name: /เข้าสู่บทเรียน Docker & Sandbox Execution/i,
+    });
+    expect(launchBtn).toBeInTheDocument();
+
+    await user.click(launchBtn);
+
+    // Verify headline and overview section
+    expect(
+      screen.getByRole('heading', {
+        name: /Docker & Sandbox ทำงานอย่างไร/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Ephemeral & Disposable Containers/i)).toBeInTheDocument();
+
+    const sidebar = screen.getByLabelText(/สารบัญบทเรียน/i);
+
+    // Switch to workflow section via left-hand sidebar
+    await user.click(
+      within(sidebar).getByRole('button', {
+        name: /5 ขั้นตอน Container Lifecycle/i,
+      }),
+    );
+    expect(screen.getByText(/สั่งทำลายทิ้งทันที/i)).toBeInTheDocument();
+
+    // Switch to commands section via left-hand sidebar
+    await user.click(
+      within(sidebar).getByRole('button', {
+        name: /คลังคำสั่ง Docker & Security Flags/i,
+      }),
+    );
+    expect(screen.getByText('docker run --network none')).toBeInTheDocument();
+    expect(screen.getByText('--read-only')).toBeInTheDocument();
+    expect(screen.getByText('--cap-drop ALL')).toBeInTheDocument();
+
+    // Go back to hub
+    await user.click(screen.getByRole('button', { name: /กลับหน้าหมวดหมู่/i }));
+    expect(
+      screen.getByRole('heading', { name: /หมวดหมู่ความรู้ทั้งหมด/i }),
+    ).toBeInTheDocument();
+  });
 });

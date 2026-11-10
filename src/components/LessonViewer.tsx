@@ -28,6 +28,8 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
   const { content } = topic;
   const isReact = topic.id === 'react-visual-patterns';
   const isNpm = topic.id === 'npm-build-deploy';
+  const isMcp = topic.id === 'mcp-protocol';
+  const isDocker = topic.id === 'docker-sandbox';
 
   const [activeSection, setActiveSection] =
     useState<LessonSectionId>('overview');
@@ -57,7 +59,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
         ? 'ภาพรวม 3 เสาหลัก React'
         : isNpm
           ? 'ภาพรวมวงจรเว็บ (Lifecycle)'
-          : 'ภาพรวม 3 เสาหลัก',
+          : isMcp
+            ? 'ภาพรวม 3 เสาหลัก MCP'
+            : isDocker
+              ? '3 เสาหลัก Sandbox ปลอดภัย'
+              : 'ภาพรวม 3 เสาหลัก',
       icon: '🏛️',
     },
     {
@@ -66,7 +72,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
         ? '4 โครงสร้างหลัก (Components & State)'
         : isNpm
           ? 'กายวิภาคไฟล์ (Files & Bundling)'
-          : 'สถาปัตยกรรม 4 เลเยอร์',
+          : isMcp
+            ? 'สถาปัตยกรรม 4 เลเยอร์ MCP'
+            : isDocker
+              ? '4 ระดับความปลอดภัย (Docker Layers)'
+              : 'สถาปัตยกรรม 4 เลเยอร์',
       icon: '🧩',
     },
     {
@@ -75,7 +85,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
         ? 'วงจรการทำงาน (Lifecycle Flow)'
         : isNpm
           ? 'ขั้นตอนการ Build & Deploy'
-          : 'วงจรการทำงาน 5 ขั้น',
+          : isMcp
+            ? 'ขั้นตอนการเชื่อมต่อ & รัน Tool'
+            : isDocker
+              ? '5 ขั้นตอน Container Lifecycle'
+              : 'วงจรการทำงาน 5 ขั้น',
       icon: '⚡',
     },
     {
@@ -84,7 +98,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
         ? 'การจัดเก็บและส่งต่อข้อมูล (Data Flow)'
         : isNpm
           ? 'เปรียบเทียบ Dev vs Prod'
-          : 'แผนภูมิบริบท & ความจำ',
+          : isMcp
+            ? 'แผนภูมิ Context & Resource Tiers'
+            : isDocker
+              ? 'ระดับการจำกัด Resource & Memory'
+              : 'แผนภูมิบริบท & ความจำ',
       icon: '📊',
     },
     {
@@ -93,7 +111,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
         ? 'จำลองสถานะเรนเดอร์ (Simulator)'
         : isNpm
           ? 'จำลอง Browser Request (เปิดไฟล์ไหน)'
-          : 'แบบจำลองสิทธิ์ความปลอดภัย',
+          : isMcp
+            ? 'จำลองสิทธิ์ความปลอดภัย (MCP Security)'
+            : isDocker
+              ? 'จำลองโหมด Sandbox (Air-Gapped vs Net)'
+              : 'แบบจำลองสิทธิ์ความปลอดภัย',
       icon: '🛡️',
     },
     ...(content.commandGroups && content.commandGroups.length > 0
@@ -104,7 +126,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
               ? 'คลัง React Hooks & Syntax'
               : isNpm
                 ? 'คลังคำสั่ง npm & Deployment'
-                : 'คลังคำสั่ง & คีย์ลัด',
+                : isMcp
+                  ? 'คลังคำสั่ง MCP Protocol & Tools'
+                  : isDocker
+                    ? 'คลังคำสั่ง Docker & Security Flags'
+                    : 'คลังคำสั่ง & คีย์ลัด',
             icon: '⌨️',
           },
         ]
@@ -179,7 +205,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                   ? '3 เสาหลัก React (React Core Pillars)'
                   : isNpm
                     ? '3 เสาหลักของวงจร Web Development (Core Pillars)'
-                    : '3 เสาหลักทางสถาปัตยกรรม (Core Architectural Pillars)'}
+                    : isMcp
+                      ? '3 เสาหลักมาตรฐาน Model Context Protocol (MCP)'
+                      : isDocker
+                        ? '3 เสาหลักการสร้าง Sandbox ปลอดภัยสำหรับ AI Agent'
+                        : '3 เสาหลักทางสถาปัตยกรรม (Core Architectural Pillars)'}
               </h3>
               <div className="pillar-grid">
                 {content.pillars.map((pillar) => (
@@ -202,7 +232,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                   ? '4 โครงสร้างสำคัญของ React (Component, State, Hooks, VDOM)'
                   : isNpm
                     ? '4 เลเยอร์โครงสร้างไฟล์และเครื่องมือ (From Code to Production)'
-                    : 'แผนผัง 4 เลเยอร์ของระบบ (4-Layer Interactive Architecture)'}
+                    : isMcp
+                      ? '4 เลเยอร์การทำงานของ Model Context Protocol (MCP Architecture)'
+                      : isDocker
+                        ? '4 เลเยอร์ความปลอดภัยระดับ Kernel และ Container (Docker Security)'
+                        : 'แผนผัง 4 เลเยอร์ของระบบ (4-Layer Interactive Architecture)'}
               </h3>
               <div className="layer-selector-bar">
                 {content.layers.map((layer) => {
@@ -241,7 +275,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                         ? 'ไฟล์ตัวอย่าง / ฟังก์ชันที่เกี่ยวข้อง'
                         : isNpm
                           ? 'ไฟล์และไดเรกทอรีสำคัญในเลเยอร์นี้'
-                          : 'ไฟล์และโมดูลสำคัญในเลเยอร์นี้'}
+                          : isMcp
+                            ? 'สเปคโปรโตคอล / โมดูลที่เกี่ยวข้อง'
+                            : isDocker
+                              ? 'โครงสร้างคอนฟิกและ Kernel Namespaces'
+                              : 'ไฟล์และโมดูลสำคัญในเลเยอร์นี้'}
                     </h5>
                     <ul>
                       {activeLayer.files.map((filePath) => (
@@ -256,7 +294,7 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                     <h5>
                       {isReact
                         ? 'แนวคิดหลักที่ต้องเข้าใจ'
-                        : isNpm
+                        : isNpm || isMcp || isDocker
                           ? 'สิ่งสำคัญที่ต้องรู้เกี่ยวกับส่วนนี้'
                           : 'จุดเด่นเชิงสถาปัตยกรรม'}
                     </h5>
@@ -284,7 +322,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                   ? 'วงจรการสร้างและเรนเดอร์ UI ใน React (Lifecycle & Render Flow)'
                   : isNpm
                     ? '5 ขั้นตอนจากเขียนโค้ดสู่หน้าจอลูกค้า (From Code to Browser)'
-                    : 'วงจรการประมวลผล 5 ขั้นตอน (5-Step Execution Loop)'}
+                    : isMcp
+                      ? '5 ขั้นตอนการเจรจาโปรโตคอลและการเรียก Tool (MCP Execution Loop)'
+                      : isDocker
+                        ? '5 ขั้นตอนการทำงานของ Ephemeral Container (Sandbox Lifecycle)'
+                        : 'วงจรการประมวลผล 5 ขั้นตอน (5-Step Execution Loop)'}
               </h3>
               <div className="stepper-button-bar">
                 {steps.map((step, idx) => {
@@ -349,7 +391,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                       ? 'ตัวอย่างโค้ด / ชิ้นส่วนที่เกี่ยวข้อง:'
                       : isNpm
                         ? 'ไฟล์และเอาต์พุตที่เกิดขึ้นในขั้นตอนนี้:'
-                        : 'อาร์ติแฟกต์และโมดูลที่เกี่ยวข้อง:'}
+                        : isMcp
+                          ? 'แพ็กเกจ JSON-RPC / อ็อบเจกต์ที่เกี่ยวข้อง:'
+                          : isDocker
+                            ? 'สถานะ Container & Linux Namespaces:'
+                            : 'อาร์ติแฟกต์และโมดูลที่เกี่ยวข้อง:'}
                   </h5>
                   <div className="artifact-tags">
                     {activeStep.keyArtifacts.map((artifact) => (
@@ -370,7 +416,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                   ? 'ระดับการส่งผ่านและขอบเขตข้อมูลใน React (State & Props Scope Tiers)'
                   : isNpm
                     ? 'การเปรียบเทียบสภาพแวดล้อม 4 ระดับ (Environment Comparison)'
-                    : 'โครงสร้างบริบทและความจำ (Context & Memory Tiers)'}
+                    : isMcp
+                      ? 'ระดับการบริหารจัดการ Context และ Resource ใน MCP'
+                      : isDocker
+                        ? 'ระดับการจำกัดทรัพยากรและหน่วยความจำ (Resource & Memory Tiers)'
+                        : 'โครงสร้างบริบทและความจำ (Context & Memory Tiers)'}
               </h3>
               <div className="context-tier-chart">
                 {content.contextTiers.map((tier) => (
@@ -407,7 +457,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                   ? 'แบบจำลองการจัดการ Side Effects และ Performance (Simulator)'
                   : isNpm
                     ? 'แบบจำลองสถาปัตยกรรมการ Deploy และ Hosting (Deployment Simulator)'
-                    : 'แบบจำลองการควบคุมสิทธิ์ความปลอดภัย (Permission Simulator)'}
+                    : isMcp
+                      ? 'แบบจำลองนโยบายความปลอดภัยของ MCP (Security Simulator)'
+                      : isDocker
+                        ? 'แบบจำลองระดับการกักกันของ Container (Isolation Simulator)'
+                        : 'แบบจำลองการควบคุมสิทธิ์ความปลอดภัย (Permission Simulator)'}
               </h3>
               <div className="permission-mode-bar">
                 {content.permissionProfiles.map((profile) => {
@@ -423,7 +477,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                     >
                       {isNpm
                         ? `โหมด: ${profile.mode === 'Smart' ? 'Cloud Static SPA' : profile.mode === 'Manual' ? 'Linux VPS (Nginx)' : 'Local Preview'}`
-                        : `โหมด: ${profile.mode}`}
+                        : isMcp
+                          ? `โหมด: ${profile.mode === 'Smart' ? 'Granular (Read Auto, Write Confirm)' : profile.mode === 'Manual' ? 'Strict (Ask Always)' : 'Autonomous Sandbox'}`
+                          : isDocker
+                            ? `โหมด: ${profile.mode === 'Smart' ? 'Filtered Network' : profile.mode === 'Manual' ? 'Air-Gapped (No Net)' : 'Privileged Dev'}`
+                            : `โหมด: ${profile.mode}`}
                     </button>
                   );
                 })}
@@ -434,7 +492,11 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                   <span className="perm-mode-tag">
                     {isNpm
                       ? `โหมดสถาปัตยกรรม: ${activeProfile.mode === 'Smart' ? 'Cloud Static SPA (Edge CDN)' : activeProfile.mode === 'Manual' ? 'Linux VPS (Nginx Web Server)' : 'Local Preview (Vite)'}`
-                      : `โหมดที่เลือก: ${activeProfile.mode}`}
+                      : isMcp
+                        ? `ระดับนโยบายความปลอดภัย: ${activeProfile.mode}`
+                        : isDocker
+                          ? `ระดับการแยกตัว (Isolation Level): ${activeProfile.mode}`
+                          : `โหมดที่เลือก: ${activeProfile.mode}`}
                   </span>
                   <p className="perm-summary-text">{activeProfile.summaryTh}</p>
                 </div>
@@ -444,9 +506,13 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                     <h5>
                       {isNpm
                         ? 'การขอไฟล์ & เส้นทาง Routing (Request Handling)'
-                        : isReact
-                          ? 'การอ่านค่า & Props (Read Action)'
-                          : 'การอ่านไฟล์ (Read Action)'}
+                        : isMcp
+                          ? 'การเข้าถึง Resources & Discovery (Read Action)'
+                          : isDocker
+                            ? 'การอ่านไฟล์และการเข้าถึง Host (Read Access)'
+                            : isReact
+                              ? 'การอ่านค่า & Props (Read Action)'
+                              : 'การอ่านไฟล์ (Read Action)'}
                     </h5>
                     <p>{activeProfile.readActionPolicyTh}</p>
                   </div>
@@ -454,9 +520,13 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                     <h5>
                       {isNpm
                         ? 'วิธีการนำไฟล์ขึ้นระบบ (Deploy Workflow)'
-                        : isReact
-                          ? 'การเปลี่ยน State & Re-render (Write Action)'
-                          : 'คำสั่งแก้ไข / เชลล์ (Write Action)'}
+                        : isMcp
+                          ? 'การรันเครื่องมือ tools/call (Execution Policy)'
+                          : isDocker
+                            ? 'การรันคำสั่งเชลล์และเขียนข้อมูล (Write/Exec Action)'
+                            : isReact
+                              ? 'การเปลี่ยน State & Re-render (Write Action)'
+                              : 'คำสั่งแก้ไข / เชลล์ (Write Action)'}
                     </h5>
                     <p>{activeProfile.writeCommandPolicyTh}</p>
                   </div>
@@ -464,9 +534,13 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                     <h5>
                       {isNpm
                         ? 'ความปลอดภัย & ข้อควรระวัง (Security & Caveats)'
-                        : isReact
-                          ? 'ข้อห้าม & Bad Practices (Anti-Patterns)'
-                          : 'การป้องกันอันตราย (Blocklist Policy)'}
+                        : isMcp
+                          ? 'การป้องกัน Prompt Injection & อันตราย (Safety Guard)'
+                          : isDocker
+                            ? 'การจำกัดสิทธิ์ Kernel & Network (Blocklist & Quota)'
+                            : isReact
+                              ? 'ข้อห้าม & Bad Practices (Anti-Patterns)'
+                              : 'การป้องกันอันตราย (Blocklist Policy)'}
                     </h5>
                     <p>{activeProfile.blocklistPolicyTh}</p>
                   </div>
@@ -487,14 +561,22 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                     ? 'คลังคำสั่ง React Hooks และ Syntax สำคัญ (React Hooks & Syntax Catalog)'
                     : isNpm
                       ? 'คลังคำสั่ง npm และขั้นตอนการ Deploy (npm Commands & Deploy Catalog)'
-                      : 'คลังคำสั่งและคีย์ลัดทั้งหมด (Command Reference & CLI Catalog)'}
+                      : isMcp
+                        ? 'คลังคำสั่งและเมธอดมาตรฐาน MCP (MCP Methods & Tools Catalog)'
+                        : isDocker
+                          ? 'คลังคำสั่ง Docker และแฟล็กความปลอดภัย (Docker CLI & Security Flags)'
+                          : 'คลังคำสั่งและคีย์ลัดทั้งหมด (Command Reference & CLI Catalog)'}
                 </h3>
                 <p className="section-subtitle">
                   {isReact
                     ? 'รวม React Hooks พื้นฐานและขั้นสูง พร้อมไวยากรณ์และคำอธิบายภาษาไทย'
                     : isNpm
                       ? 'รวมคำสั่ง npm สำคัญทั้งหมดที่ใช้ในชีวิตประจำวันของนักพัฒนาเว็บ พร้อมคำอธิบายสิ่งที่เกิดขึ้นจริงในระบบ'
-                      : 'รวมคำสั่ง Slash Commands ที่สามารถพิมพ์สั่งการได้ทั้งในเทอร์มินัล CLI และผ่าน Gateway แชท'}
+                      : isMcp
+                        ? 'รวมเมธอด JSON-RPC 2.0, คำสั่งกำหนดค่า และเครื่องมือตรวจสอบของ Model Context Protocol'
+                        : isDocker
+                          ? 'รวมคำสั่ง Docker CLI และ Security Flags ที่จำเป็นสำหรับการสร้าง Container ปลอดภัยสำหรับ AI Agent'
+                          : 'รวมคำสั่ง Slash Commands ที่สามารถพิมพ์สั่งการได้ทั้งในเทอร์มินัล CLI และผ่าน Gateway แชท'}
                 </p>
 
                 <div className="command-groups-container">
@@ -513,7 +595,7 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                         <table className="command-table">
                           <thead>
                             <tr>
-                              <th>คำสั่ง (Command / Syntax)</th>
+                              <th>คำสั่ง / เมธอด (Command / Method)</th>
                               <th>ตัวอย่างการใช้งาน (Usage)</th>
                               <th>คำอธิบาย (Description)</th>
                             </tr>
