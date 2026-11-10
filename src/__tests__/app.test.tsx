@@ -266,4 +266,53 @@ describe('TK Learning Center', () => {
       screen.getByRole('heading', { name: /หมวดหมู่ความรู้ทั้งหมด/i }),
     ).toBeInTheDocument();
   });
+
+  it('opens and interacts with the npm, Build & Deployment lesson', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const launchBtn = screen.getByRole('button', {
+      name: /เข้าสู่บทเรียน npm, Build & Deployment/i,
+    });
+    expect(launchBtn).toBeInTheDocument();
+
+    await user.click(launchBtn);
+
+    // Verify headline and overview section
+    expect(
+      screen.getByRole('heading', {
+        name: /npm, Build & Deployment ทำงานอย่างไร/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/จัดการ Library ด้วย npm/i),
+    ).toBeInTheDocument();
+
+    const sidebar = screen.getByLabelText(/สารบัญบทเรียน/i);
+
+    // Switch to workflow section via left-hand sidebar
+    await user.click(
+      within(sidebar).getByRole('button', {
+        name: /ขั้นตอนการ Build & Deploy/i,
+      }),
+    );
+    expect(screen.getByText(/ลูกค้าเปิดหน้าเว็บ/i)).toBeInTheDocument();
+
+    // Switch to commands section via left-hand sidebar
+    await user.click(
+      within(sidebar).getByRole('button', {
+        name: /คลังคำสั่ง npm & Deployment/i,
+      }),
+    );
+    expect(screen.getByText('npm install (หรือ npm i)')).toBeInTheDocument();
+    expect(screen.getAllByText('npm run build').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('1. Deploy เฉพาะโฟลเดอร์ dist/')).toBeInTheDocument();
+    expect(screen.getByText('2. ลูกค้าพิมพ์ URL -> ขอ index.html')).toBeInTheDocument();
+
+    // Go back to hub
+    await user.click(screen.getByRole('button', { name: /กลับหน้าหมวดหมู่/i }));
+    expect(
+      screen.getByRole('heading', { name: /หมวดหมู่ความรู้ทั้งหมด/i }),
+    ).toBeInTheDocument();
+  });
 });

@@ -27,6 +27,7 @@ export interface SectionNavItem {
 export function LessonViewer({ topic, onBack }: LessonViewerProps) {
   const { content } = topic;
   const isReact = topic.id === 'react-visual-patterns';
+  const isNpm = topic.id === 'npm-build-deploy';
 
   const [activeSection, setActiveSection] =
     useState<LessonSectionId>('overview');
@@ -52,35 +53,47 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
   const navItems: readonly SectionNavItem[] = [
     {
       id: 'overview',
-      labelTh: isReact ? 'ภาพรวม 3 เสาหลัก React' : 'ภาพรวม 3 เสาหลัก',
+      labelTh: isReact
+        ? 'ภาพรวม 3 เสาหลัก React'
+        : isNpm
+          ? 'ภาพรวมวงจรเว็บ (Lifecycle)'
+          : 'ภาพรวม 3 เสาหลัก',
       icon: '🏛️',
     },
     {
       id: 'layers',
       labelTh: isReact
         ? '4 โครงสร้างหลัก (Components & State)'
-        : 'สถาปัตยกรรม 4 เลเยอร์',
+        : isNpm
+          ? 'กายวิภาคไฟล์ (Files & Bundling)'
+          : 'สถาปัตยกรรม 4 เลเยอร์',
       icon: '🧩',
     },
     {
       id: 'workflow',
       labelTh: isReact
         ? 'วงจรการทำงาน (Lifecycle Flow)'
-        : 'วงจรการทำงาน 5 ขั้น',
+        : isNpm
+          ? 'ขั้นตอนการ Build & Deploy'
+          : 'วงจรการทำงาน 5 ขั้น',
       icon: '⚡',
     },
     {
       id: 'tiers',
       labelTh: isReact
         ? 'การจัดเก็บและส่งต่อข้อมูล (Data Flow)'
-        : 'แผนภูมิบริบท & ความจำ',
+        : isNpm
+          ? 'เปรียบเทียบ Dev vs Prod'
+          : 'แผนภูมิบริบท & ความจำ',
       icon: '📊',
     },
     {
       id: 'permissions',
       labelTh: isReact
         ? 'จำลองสถานะเรนเดอร์ (Simulator)'
-        : 'แบบจำลองสิทธิ์ความปลอดภัย',
+        : isNpm
+          ? 'จำลอง Browser Request (เปิดไฟล์ไหน)'
+          : 'แบบจำลองสิทธิ์ความปลอดภัย',
       icon: '🛡️',
     },
     ...(content.commandGroups && content.commandGroups.length > 0
@@ -89,7 +102,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
             id: 'commands' as const,
             labelTh: isReact
               ? 'คลัง React Hooks & Syntax'
-              : 'คลังคำสั่ง & คีย์ลัด',
+              : isNpm
+                ? 'คลังคำสั่ง npm & Deployment'
+                : 'คลังคำสั่ง & คีย์ลัด',
             icon: '⌨️',
           },
         ]
@@ -162,7 +177,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
               <h3 id="pillars-heading" className="section-title">
                 {isReact
                   ? '3 เสาหลัก React (React Core Pillars)'
-                  : '3 เสาหลักทางสถาปัตยกรรม (Core Architectural Pillars)'}
+                  : isNpm
+                    ? '3 เสาหลักของวงจร Web Development (Core Pillars)'
+                    : '3 เสาหลักทางสถาปัตยกรรม (Core Architectural Pillars)'}
               </h3>
               <div className="pillar-grid">
                 {content.pillars.map((pillar) => (
@@ -183,7 +200,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
               <h3 id="architecture-heading" className="section-title">
                 {isReact
                   ? '4 โครงสร้างสำคัญของ React (Component, State, Hooks, VDOM)'
-                  : 'แผนผัง 4 เลเยอร์ของระบบ (4-Layer Interactive Architecture)'}
+                  : isNpm
+                    ? '4 เลเยอร์โครงสร้างไฟล์และเครื่องมือ (From Code to Production)'
+                    : 'แผนผัง 4 เลเยอร์ของระบบ (4-Layer Interactive Architecture)'}
               </h3>
               <div className="layer-selector-bar">
                 {content.layers.map((layer) => {
@@ -220,7 +239,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                     <h5>
                       {isReact
                         ? 'ไฟล์ตัวอย่าง / ฟังก์ชันที่เกี่ยวข้อง'
-                        : 'ไฟล์และโมดูลสำคัญในเลเยอร์นี้'}
+                        : isNpm
+                          ? 'ไฟล์และไดเรกทอรีสำคัญในเลเยอร์นี้'
+                          : 'ไฟล์และโมดูลสำคัญในเลเยอร์นี้'}
                     </h5>
                     <ul>
                       {activeLayer.files.map((filePath) => (
@@ -235,7 +256,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                     <h5>
                       {isReact
                         ? 'แนวคิดหลักที่ต้องเข้าใจ'
-                        : 'จุดเด่นเชิงสถาปัตยกรรม'}
+                        : isNpm
+                          ? 'สิ่งสำคัญที่ต้องรู้เกี่ยวกับส่วนนี้'
+                          : 'จุดเด่นเชิงสถาปัตยกรรม'}
                     </h5>
                     <ul>
                       {activeLayer.highlightsTh.map((highlight) => (
@@ -259,7 +282,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
               <h3 id="workflow-heading" className="section-title">
                 {isReact
                   ? 'วงจรการสร้างและเรนเดอร์ UI ใน React (Lifecycle & Render Flow)'
-                  : 'วงจรการประมวลผล 5 ขั้นตอน (5-Step Execution Loop)'}
+                  : isNpm
+                    ? '5 ขั้นตอนจากเขียนโค้ดสู่หน้าจอลูกค้า (From Code to Browser)'
+                    : 'วงจรการประมวลผล 5 ขั้นตอน (5-Step Execution Loop)'}
               </h3>
               <div className="stepper-button-bar">
                 {steps.map((step, idx) => {
@@ -322,7 +347,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                   <h5>
                     {isReact
                       ? 'ตัวอย่างโค้ด / ชิ้นส่วนที่เกี่ยวข้อง:'
-                      : 'อาร์ติแฟกต์และโมดูลที่เกี่ยวข้อง:'}
+                      : isNpm
+                        ? 'ไฟล์และเอาต์พุตที่เกิดขึ้นในขั้นตอนนี้:'
+                        : 'อาร์ติแฟกต์และโมดูลที่เกี่ยวข้อง:'}
                   </h5>
                   <div className="artifact-tags">
                     {activeStep.keyArtifacts.map((artifact) => (
@@ -341,7 +368,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
               <h3 id="context-heading" className="section-title">
                 {isReact
                   ? 'ระดับการส่งผ่านและขอบเขตข้อมูลใน React (State & Props Scope Tiers)'
-                  : 'โครงสร้างบริบทและความจำ (Context & Memory Tiers)'}
+                  : isNpm
+                    ? 'การเปรียบเทียบสภาพแวดล้อม 4 ระดับ (Environment Comparison)'
+                    : 'โครงสร้างบริบทและความจำ (Context & Memory Tiers)'}
               </h3>
               <div className="context-tier-chart">
                 {content.contextTiers.map((tier) => (
@@ -376,7 +405,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
               <h3 id="permission-heading" className="section-title">
                 {isReact
                   ? 'แบบจำลองการจัดการ Side Effects และ Performance (Simulator)'
-                  : 'แบบจำลองการควบคุมสิทธิ์ความปลอดภัย (Permission Simulator)'}
+                  : isNpm
+                    ? 'แบบจำลองสถาปัตยกรรมการ Deploy และ Hosting (Deployment Simulator)'
+                    : 'แบบจำลองการควบคุมสิทธิ์ความปลอดภัย (Permission Simulator)'}
               </h3>
               <div className="permission-mode-bar">
                 {content.permissionProfiles.map((profile) => {
@@ -390,7 +421,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                       }`}
                       onClick={() => setSelectedPermissionMode(profile.mode)}
                     >
-                      {`โหมด: ${profile.mode}`}
+                      {isNpm
+                        ? `โหมด: ${profile.mode === 'Smart' ? 'Cloud Static SPA' : profile.mode === 'Manual' ? 'Linux VPS (Nginx)' : 'Local Preview'}`
+                        : `โหมด: ${profile.mode}`}
                     </button>
                   );
                 })}
@@ -399,7 +432,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
               <div data-testid="permission-panel" className="permission-panel">
                 <div className="perm-summary-box">
                   <span className="perm-mode-tag">
-                    โหมดที่เลือก: {activeProfile.mode}
+                    {isNpm
+                      ? `โหมดสถาปัตยกรรม: ${activeProfile.mode === 'Smart' ? 'Cloud Static SPA (Edge CDN)' : activeProfile.mode === 'Manual' ? 'Linux VPS (Nginx Web Server)' : 'Local Preview (Vite)'}`
+                      : `โหมดที่เลือก: ${activeProfile.mode}`}
                   </span>
                   <p className="perm-summary-text">{activeProfile.summaryTh}</p>
                 </div>
@@ -407,25 +442,31 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                 <div className="perm-policies-grid">
                   <div className="perm-policy-card perm-policy-read">
                     <h5>
-                      {isReact
-                        ? 'การอ่านค่า & Props (Read Action)'
-                        : 'การอ่านไฟล์ (Read Action)'}
+                      {isNpm
+                        ? 'การขอไฟล์ & เส้นทาง Routing (Request Handling)'
+                        : isReact
+                          ? 'การอ่านค่า & Props (Read Action)'
+                          : 'การอ่านไฟล์ (Read Action)'}
                     </h5>
                     <p>{activeProfile.readActionPolicyTh}</p>
                   </div>
                   <div className="perm-policy-card perm-policy-write">
                     <h5>
-                      {isReact
-                        ? 'การเปลี่ยน State & Re-render (Write Action)'
-                        : 'คำสั่งแก้ไข / เชลล์ (Write Action)'}
+                      {isNpm
+                        ? 'วิธีการนำไฟล์ขึ้นระบบ (Deploy Workflow)'
+                        : isReact
+                          ? 'การเปลี่ยน State & Re-render (Write Action)'
+                          : 'คำสั่งแก้ไข / เชลล์ (Write Action)'}
                     </h5>
                     <p>{activeProfile.writeCommandPolicyTh}</p>
                   </div>
                   <div className="perm-policy-card perm-policy-block">
                     <h5>
-                      {isReact
-                        ? 'ข้อห้าม & Bad Practices (Anti-Patterns)'
-                        : 'การป้องกันอันตราย (Blocklist Policy)'}
+                      {isNpm
+                        ? 'ความปลอดภัย & ข้อควรระวัง (Security & Caveats)'
+                        : isReact
+                          ? 'ข้อห้าม & Bad Practices (Anti-Patterns)'
+                          : 'การป้องกันอันตราย (Blocklist Policy)'}
                     </h5>
                     <p>{activeProfile.blocklistPolicyTh}</p>
                   </div>
@@ -444,12 +485,16 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                 <h3 id="commands-heading" className="section-title">
                   {isReact
                     ? 'คลังคำสั่ง React Hooks และ Syntax สำคัญ (React Hooks & Syntax Catalog)'
-                    : 'คลังคำสั่งและคีย์ลัดทั้งหมด (Command Reference & CLI Catalog)'}
+                    : isNpm
+                      ? 'คลังคำสั่ง npm และขั้นตอนการ Deploy (npm Commands & Deploy Catalog)'
+                      : 'คลังคำสั่งและคีย์ลัดทั้งหมด (Command Reference & CLI Catalog)'}
                 </h3>
                 <p className="section-subtitle">
                   {isReact
                     ? 'รวม React Hooks พื้นฐานและขั้นสูง พร้อมไวยากรณ์และคำอธิบายภาษาไทย'
-                    : 'รวมคำสั่ง Slash Commands ที่สามารถพิมพ์สั่งการได้ทั้งในเทอร์มินัล CLI และผ่าน Gateway แชท'}
+                    : isNpm
+                      ? 'รวมคำสั่ง npm สำคัญทั้งหมดที่ใช้ในชีวิตประจำวันของนักพัฒนาเว็บ พร้อมคำอธิบายสิ่งที่เกิดขึ้นจริงในระบบ'
+                      : 'รวมคำสั่ง Slash Commands ที่สามารถพิมพ์สั่งการได้ทั้งในเทอร์มินัล CLI และผ่าน Gateway แชท'}
                 </p>
 
                 <div className="command-groups-container">
@@ -468,7 +513,7 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                         <table className="command-table">
                           <thead>
                             <tr>
-                              <th>คำสั่ง (Command / Hook)</th>
+                              <th>คำสั่ง (Command / Syntax)</th>
                               <th>ตัวอย่างการใช้งาน (Usage)</th>
                               <th>คำอธิบาย (Description)</th>
                             </tr>

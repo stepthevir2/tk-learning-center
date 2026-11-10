@@ -732,4 +732,339 @@ export const TOPICS = [
       ],
     },
   },
+  {
+    status: 'ready',
+    id: createTopicId('npm-build-deploy'),
+    categoryId: 'system-arch',
+    categoryLabel: 'System Architecture',
+    title: 'npm, Build & Deployment (ทำไมต้อง build & ลูกค้าเปิดไฟล์ไหน)',
+    summaryTh: 'คู่มือภาพฉบับเห็นภาพจริง: คำสั่ง npm สำคัญ, เบื้องหลังกระบวนการ npm run build (Transpile, Bundle, Minify), วิธีนำโฟลเดอร์ dist/ ไป Deploy, และลำดับที่เบราว์เซอร์ของลูกค้าเรียกไฟล์เมื่อเปิดเว็บ',
+    flowPreview: [
+      'npm install & node_modules',
+      'npm run build -> dist/',
+      'Deploy & Client Browser Request',
+    ],
+    content: {
+      headlineTh: 'npm, Build & Deployment ทำงานอย่างไร? (จากเขียนโค้ดสู่หน้าจอลูกค้า)',
+      introTh: 'เมื่อเราสร้างเว็บด้วย React หรือ TypeScript โค้ดที่เราเขียนไม่สามารถนำไปเปิดในเบราว์เซอร์ของลูกค้าได้ทันที บทเรียนนี้จะพาไปดูเบื้องหลังว่าทำไมต้องมี npm, ทำไมต้อง build โค้ดออกมาเป็นโฟลเดอร์ dist/, จะนำไป deploy อย่างไร, และเมื่อลูกค้าพิมพ์ URL เข้าเว็บ เบราว์เซอร์จะส่งคำขอไปโหลดไฟล์อะไรมาแสดงผล',
+      pillars: [
+        {
+          titleTh: '1. จัดการ Library ด้วย npm (Dependency Isolation)',
+          descriptionTh: 'npm ทำหน้าที่ดาวน์โหลดไลบรารีภายนอกมาไว้ในเครื่องผ่าน package.json โดยล็อกเวอร์ชันอย่างแม่นยำด้วย package-lock.json เพื่อให้เพื่อนร่วมทีมหรือเซิร์ฟเวอร์ build โค้ดได้ผลลัพธ์ตรงกัน 100%',
+        },
+        {
+          titleTh: '2. ทำไมต้อง Build (Transpile, Bundle, Minify)',
+          descriptionTh: 'เบราว์เซอร์ไม่เข้าใจ TypeScript หรือ JSX และไม่ควรโหลดไฟล์ย่อยเป็นร้อยไฟล์ กระบวนการ build จึงแปลงโค้ดเป็น JavaScript มาตรฐาน รวบไฟล์ให้เหลือไม่กี่ก้อน บีบอัดขนาด และใส่ Content Hash กัน Cache ค้าง',
+        },
+        {
+          titleTh: '3. ลูกค้าเปิดไฟล์ไหน (Client-Side Rendering Flow)',
+          descriptionTh: 'เมื่อลูกค้าเข้าเว็บ เว็บเซิร์ฟเวอร์จะคืนไฟล์ index.html เป็นอันดับแรก จากนั้นเบราว์เซอร์จะอ่านแท็ก script เพื่อดาวน์โหลดไฟล์ .js และ .css ในโฟลเดอร์ assets มาประมวลผลบนเครื่องลูกค้า แล้ว React จึงเริ่มวาดหน้าจอ',
+        },
+      ],
+      layers: [
+        {
+          id: 'entry-routing',
+          codeLabel: 'LAYER 01 • PROJECT MANIFEST',
+          titleTh: '1. ไฟล์ระบุรายการและโครงสร้างโปรเจกต์',
+          subtitleTh: 'package.json, package-lock.json และซอร์สโค้ดใน src/',
+          files: ['package.json', 'package-lock.json', 'src/App.tsx'],
+          highlightsTh: [
+            '<strong>package.json:</strong> เปรียบเหมือนใบสั่งซื้อของโปรเจกต์ ระบุว่าต้องใช้ไลบรารีอะไรบ้าง และมีสคริปต์อะไรให้รันได้ เช่น dev, build, test',
+            '<strong>package-lock.json:</strong> บันทึกเวอร์ชันที่แท้จริงและ Checksum ของทุก package อย่างละเอียด ป้องกันปัญหาโค้ดรันได้ในเครื่องเราแต่พังบนเครื่องเพื่อน',
+            '<strong>dependencies vs devDependencies:</strong> dependencies คือไลบรารีที่จำเป็นต่อการรันจริง (เช่น react) ส่วน devDependencies คือเครื่องมือช่วยตอนเขียนโค้ด (เช่น typescript, vite, vitest)',
+          ],
+        },
+        {
+          id: 'core-loop',
+          codeLabel: 'LAYER 02 • DEPENDENCY ENGINE',
+          titleTh: '2. โฟลเดอร์ node_modules และตัวจัดการแพ็กเกจ',
+          subtitleTh: 'คลังไลบรารีทั้งหมดในเครื่องที่ npm ติดตั้งให้',
+          files: ['node_modules/', 'node_modules/.bin/', 'npm cache'],
+          highlightsTh: [
+            '<strong>node_modules/:</strong> โฟลเดอร์ที่เก็บโค้ดของ Library ทั้งหมดที่ดาวน์โหลดมาจาก npm Registry มักมีขนาดใหญ่มาก จึงไม่ควร push ขึ้น git (ต้องใส่ใน .gitignore)',
+            '<strong>.bin/:</strong> โฟลเดอร์ย่อยข้างใน node_modules ที่เก็บคำสั่ง Executable เช่น vite, tsc, vitest ทำให้สามารถเรียกผ่าน npm scripts หรือ npx ได้',
+            '<strong>npm ci (Clean Install):</strong> คำสั่งลบ node_modules ทิ้งแล้วติดตั้งตาม package-lock.json เป๊ะๆ นิยมใช้ในระบบ CI/CD และ Deployment Server',
+          ],
+        },
+        {
+          id: 'tools-sandboxes',
+          codeLabel: 'LAYER 03 • BUILD PIPELINE',
+          titleTh: '3. เครื่องมือคอมไพล์และบิลด์ (Compiler & Bundler)',
+          subtitleTh: 'Vite, TypeScript (tsc) และ Rollup/esbuild',
+          files: ['tsconfig.json', 'vite.config.ts', 'tsc -b && vite build'],
+          highlightsTh: [
+            '<strong>Type Checking (tsc -b):</strong> ตรวจสอบความถูกต้องของประเภทข้อมูล TypeScript ทั้งหมด หากมี error จะหยุด build ทันที ป้องกันบั๊กหลุดไปถึงลูกค้า',
+            '<strong>Transpilation (JSX & TS → JS):</strong> แปลง syntax พิเศษอย่าง JSX และฟีเจอร์ JavaScript รุ่นใหม่ ให้กลายเป็น JavaScript มาตรฐานที่เบราว์เซอร์ทุกตัวเข้าใจ',
+            '<strong>Bundling & Tree-shaking:</strong> รวบรวมไฟล์แยกใน src/ เข้าด้วยกัน และตัดโค้ดส่วนที่ไม่ได้ถูก import ออก ทำให้ไฟล์เบาและโหลดเร็ว',
+            '<strong>Asset Hashing:</strong> ใส่แฮชในชื่อไฟล์ เช่น index-Cjuuf2Ng.js เพื่อแก้ปัญหา Browser Cache ค้างเมื่อมีการปล่อยเวอร์ชันใหม่',
+          ],
+        },
+        {
+          id: 'memory-skills',
+          codeLabel: 'LAYER 04 • PRODUCTION ASSETS',
+          titleTh: '4. โฟลเดอร์ผลลัพธ์ dist/ สำหรับนำไป Deploy',
+          subtitleTh: 'ไฟล์ Static แท้ๆ ที่พร้อมเสิร์ฟให้ลูกค้า',
+          files: [
+            'dist/index.html',
+            'dist/assets/index-[hash].js',
+            'dist/assets/index-[hash].css',
+          ],
+          highlightsTh: [
+            '<strong>สิ่งที่ได้ใน dist/:</strong> จะมีเพียง index.html ก้อนเดียว และโฟลเดอร์ assets/ ที่เก็บไฟล์ JS, CSS ที่ผ่านการ minify แล้ว',
+            '<strong>ขนาดไฟล์ลดลงอย่างมาก:</strong> จากโปรเจกต์ต้นฉบับหลายร้อย MB (รวม node_modules) เมื่อ build แล้ว dist/ มักเหลือเพียงไม่กี่ร้อย KB ถึงไม่กี่ MB',
+            '<strong>Deploy แค่ dist/ เท่านั้น:</strong> ไม่ต้องก็อปปี้ src/ หรือ node_modules ขึ้น Static Server ให้เปลืองพื้นที่และเสี่ยงต่อความปลอดภัย',
+          ],
+        },
+      ],
+      workflowSteps: [
+        {
+          stepNumber: 1,
+          buttonLabelTh: 'ขั้นที่ 1: ติดตั้ง npm install',
+          titleTh: 'ขั้นที่ 1: ติดตั้ง Library ด้วย npm install หรือ npm ci',
+          descriptionTh:
+            'รันคำสั่ง npm install เพื่ออ่าน package.json และดาวน์โหลดแพ็กเกจทั้งหมดลงในเครื่อง หรือใช้ npm ci บนระบบเซิร์ฟเวอร์อัตโนมัติเพื่อให้ได้ไฟล์เหมือนกันเป๊ะ',
+          keyArtifacts: ['package.json', 'package-lock.json', 'node_modules/'],
+        },
+        {
+          stepNumber: 2,
+          buttonLabelTh: 'ขั้นที่ 2: พัฒนา & ทดสอบ',
+          titleTh:
+            'ขั้นที่ 2: พัฒนาด้วย npm run dev และตรวจสอบด้วย npm test',
+          descriptionTh:
+            'รันเซิร์ฟเวอร์จำลองบน localhost ด้วย Vite มีระบบ Hot Module Replacement (HMR) ทำให้แก้โค้ดแล้วหน้าจอเปลี่ยนทันทีโดยไม่ต้องรีเฟรช และรัน Unit Test ให้ผ่าน',
+          keyArtifacts: [
+            'http://localhost:5173',
+            'Vite Dev Server',
+            'Vitest Suite',
+          ],
+        },
+        {
+          stepNumber: 3,
+          buttonLabelTh: 'ขั้นที่ 3: สั่ง npm run build',
+          titleTh:
+            'ขั้นที่ 3: คอมไพล์และบิลด์โค้ดออกมาเป็นโฟลเดอร์ dist/',
+          descriptionTh:
+            'รันคำสั่ง npm run build โดย Vite จะเรียก tsc ตรวจประเภทข้อมูล จากนั้นแปลง JSX เป็น JS, ทำ Tree-shaking, บีบอัดโค้ด (Minify) และสร้างโฟลเดอร์ dist/ ที่สมบูรณ์แบบ',
+          keyArtifacts: [
+            'dist/index.html',
+            'dist/assets/*.js',
+            'dist/assets/*.css',
+          ],
+        },
+        {
+          stepNumber: 4,
+          buttonLabelTh: 'ขั้นที่ 4: Deploy ขึ้น Hosting',
+          titleTh:
+            'ขั้นที่ 4: นำโฟลเดอร์ dist/ ไป Deploy บน Web Server หรือ CDN',
+          descriptionTh:
+            'อัปโหลดเฉพาะโฟลเดอร์ dist/ ขึ้น Static Hosting เช่น Cloudflare Pages, Vercel, Netlify, GitHub Pages หรือก็อปปี้ลง Nginx/Apache ที่ /var/www/html',
+          keyArtifacts: [
+            'Cloudflare Pages / Vercel',
+            'Nginx Web Server',
+            'Global CDN Edge',
+          ],
+        },
+        {
+          stepNumber: 5,
+          buttonLabelTh: 'ขั้นที่ 5: ลูกค้าเปิดหน้าเว็บ',
+          titleTh:
+            'ขั้นที่ 5: เบราว์เซอร์ลูกค้าส่ง HTTP GET ขอไฟล์และเรนเดอร์ UI',
+          descriptionTh:
+            'ลูกค้าพิมพ์ URL เบราว์เซอร์ส่งคำขอไปโหลด index.html จากนั้นอ่านแท็ก script เพื่อโหลด index-[hash].js มาประมวลผลบนเครื่องลูกค้า แล้ว React จึงวาดหน้าจอแสดงผล',
+          keyArtifacts: [
+            'HTTP 200 GET /index.html',
+            'HTTP 200 GET /assets/index.js',
+            'DOM Mounting (<div id="root">)',
+          ],
+        },
+      ],
+      contextTiers: [
+        {
+          id: 'dev-env',
+          name: 'Development Environment (Local)',
+          subtitleTh: 'สภาพแวดล้อมตอนเขียนโค้ดในเครื่องตนเอง',
+          usagePercent: 95,
+          badgeText: 'localhost:5173',
+          retentionTh:
+            'ใช้ node_modules ขนาดใหญ่ มี Source Maps สำหรับดีบั๊ก',
+        },
+        {
+          id: 'build-env',
+          name: 'CI/CD Build Pipeline',
+          subtitleTh: 'เครื่องสร้างไฟล์อัตโนมัติบน GitHub Actions / Cloud',
+          usagePercent: 80,
+          badgeText: 'npm ci && npm run build',
+          retentionTh:
+            'รันเทสต์ทุกเคส หากผ่านจะส่งออกเฉพาะโฟลเดอร์ dist/',
+        },
+        {
+          id: 'cdn-env',
+          name: 'Static Web Server / CDN Edge',
+          subtitleTh:
+            'เซิร์ฟเวอร์กระจายไฟล์ทั่วโลกที่เสิร์ฟไฟล์ให้ลูกค้า',
+          usagePercent: 100,
+          badgeText: 'Cloudflare / Vercel / Nginx',
+          retentionTh:
+            'เก็บเฉพาะไฟล์ Static ใน dist/ มี Content Hashing แคชได้ยาวนาน',
+        },
+        {
+          id: 'client-env',
+          name: 'Client Browser Runtime',
+          subtitleTh: 'เครื่องคอมพิวเตอร์หรือมือถือของลูกค้าที่เปิดดูเว็บ',
+          usagePercent: 50,
+          badgeText: 'Chrome / Safari / Firefox',
+          retentionTh:
+            'โหลดไฟล์ JS/CSS มาเก็บใน Browser Cache และประมวลผลผ่าน CPU ลูกค้า',
+        },
+      ],
+      permissionProfiles: [
+        {
+          mode: 'Smart',
+          summaryTh:
+            'โหมด SPA บน Static Hosting (Cloudflare Pages, Vercel, Netlify, GitHub Pages)',
+          readActionPolicyTh:
+            'เบราว์เซอร์ขอหน้าใดก็ตาม เซิร์ฟเวอร์จะคืน dist/index.html เสมอ แล้ว JavaScript ฝั่งลูกค้าจะเป็นผู้จัดการเส้นทางหน้า (SPA Routing) เอง',
+          writeCommandPolicyTh:
+            'Deploy ง่ายที่สุด เพียงเชื่อมต่อกับ Git Repository เมื่อ push โค้ด ระบบจะรัน build และนำ dist/ กระจายไปยัง Edge CDN ทั่วโลกอัตโนมัติ',
+          blocklistPolicyTh:
+            'ป้องกันไม่ให้ไฟล์ซอร์สโค้ดใน src/ หรือ node_modules รั่วไหลออกสู่ภายนอก เพราะเซิร์ฟเวอร์อนุญาตให้อ่านได้เฉพาะโฟลเดอร์ dist/ เท่านั้น',
+        },
+        {
+          mode: 'Manual',
+          summaryTh: 'โหมด Traditional Linux VPS (Nginx / Apache Server)',
+          readActionPolicyTh:
+            'ต้องคอนฟิก Nginx ด้วยคำสั่ง try_files $uri $uri/ /index.html; เพื่อให้เวลาลูกค้ากดรีเฟรชในหน้า URL ย่อย เซิร์ฟเวอร์จะไม่ตอบกลับ 404 Not Found',
+          writeCommandPolicyTh:
+            'ผู้ดูแลระบบต้องรัน npm run build แล้วใช้ scp หรือ rsync ก็อปปี้ไฟล์ใน dist/ ไปวางไว้ที่ /var/www/html/ ด้วยตนเองหรือผ่าน Bash Script',
+          blocklistPolicyTh:
+            'ต้องปิดการเข้าถึงไฟล์ดอท (.env, .git) ใน Web Server อย่างเด็ดขาดเพื่อความปลอดภัย',
+        },
+        {
+          mode: 'Off',
+          summaryTh: 'โหมด Local Preview บนเครื่องตนเอง (npm run preview)',
+          readActionPolicyTh:
+            'Vite จะเปิด HTTP Web Server จำลองขนาดเล็กเพื่ออ่านไฟล์จากโฟลเดอร์ dist/ ให้เราตรวจสอบเหมือนกับเปิดดูบนเซิร์ฟเวอร์จริงก่อนส่งขึ้นระบบ',
+          writeCommandPolicyTh:
+            'รันคำสั่ง npm run preview หลังรัน build เสร็จ เพื่อทดสอบว่าไฟล์ที่บิลด์ออกมาทำงานได้ถูกต้องครบถ้วนและไม่มี path ผิดพลาด',
+          blocklistPolicyTh:
+            'ไม่รองรับ Hot Module Replacement (HMR) เพราะกำลังรันไฟล์โปรดักชันที่ผ่านการบิลด์แล้ว ไม่ใช่โค้ดดิบ',
+        },
+      ],
+      commandGroups: [
+        {
+          groupTitleTh: '1. คำสั่งติดตั้งและจัดการ Library (Package Management)',
+          groupDescriptionTh:
+            'คำสั่ง npm สำหรับดาวน์โหลด อัปเดต และควบคุมไลบรารีในโปรเจกต์',
+          commands: [
+            {
+              command: 'npm install (หรือ npm i)',
+              usageTh: 'npm install',
+              descriptionTh:
+                'อ่าน package.json แล้วดาวน์โหลดไลบรารีทั้งหมดมาไว้ในโฟลเดอร์ node_modules พร้อมสร้างหรืออัปเดต package-lock.json',
+            },
+            {
+              command: 'npm install <package-name>',
+              usageTh: 'npm install react-router-dom',
+              descriptionTh:
+                'ติดตั้งแพ็กเกจใหม่เข้าไปในโฟลเดอร์ node_modules และบันทึกชื่อลงใน dependencies ของ package.json (ใช้สำหรับรันในโปรเจกต์จริง)',
+            },
+            {
+              command: 'npm install -D <package-name> (หรือ --save-dev)',
+              usageTh: 'npm install -D typescript @types/react',
+              descriptionTh:
+                'ติดตั้งแพ็กเกจลงใน devDependencies สำหรับเครื่องมือที่ใช้เฉพาะตอนพัฒนา เช่น Compiler, Linter, Test Runner ไม่ถูกนำไปรันในเครื่องลูกค้า',
+            },
+            {
+              command: 'npm ci (Clean Install)',
+              usageTh: 'npm ci',
+              descriptionTh:
+                'ลบ node_modules ทิ้งแล้วติดตั้งตาม package-lock.json อย่างเคร่งครัด 100% เร็วกว่าและปลอดภัยกว่า นิยมใช้ในระบบ CI/CD และบนเซิร์ฟเวอร์บิลด์',
+            },
+            {
+              command: 'npm uninstall <package-name>',
+              usageTh: 'npm uninstall lodash',
+              descriptionTh:
+                'ลบแพ็กเกจที่ไม่ได้ใช้ออกจาก node_modules และนำชื่อออกจาก package.json',
+            },
+            {
+              command: 'npm update',
+              usageTh: 'npm update',
+              descriptionTh:
+                'อัปเดตแพ็กเกจทั้งหมดให้เป็นเวอร์ชันล่าสุดภายใต้เงื่อนไข semver ที่ระบุไว้ใน package.json',
+            },
+          ],
+        },
+        {
+          groupTitleTh: '2. คำสั่งรันสคริปต์และเครื่องมือ (Scripts & Execution)',
+          groupDescriptionTh:
+            'คำสั่งสำหรับเริ่มเขียนโค้ด รันเทสต์ และสร้างไฟล์สำหรับใช้งานจริง',
+          commands: [
+            {
+              command: 'npm run dev',
+              usageTh: 'npm run dev',
+              descriptionTh:
+                'เปิดเซิร์ฟเวอร์จำลองสำหรับพัฒนา (Development Server) มีระบบโหลดโค้ดใหม่อัตโนมัติ (HMR) ทำให้เห็นผลการแก้โค้ดทันที',
+            },
+            {
+              command: 'npm run build',
+              usageTh: 'npm run build',
+              descriptionTh:
+                'ตรวจสอบประเภทข้อมูล (tsc) และคอมไพล์โค้ดทั้งหมด แปลง JSX/TS เป็น JS ปกติ รวบไฟล์ บีบอัด และสร้างโฟลเดอร์ dist/ สำหรับนำไปใช้งานจริง',
+            },
+            {
+              command: 'npm test (หรือ npm run test)',
+              usageTh: 'npm test',
+              descriptionTh:
+                'รันชุดการทดสอบ (Unit Tests / Integration Tests) เพื่อพิสูจน์ว่าโค้ดทำงานถูกต้องตามเงื่อนไขที่กำหนดไว้ก่อนนำไปบิลด์หรือปล่อยขึ้นระบบ',
+            },
+            {
+              command: 'npm run preview',
+              usageTh: 'npm run preview',
+              descriptionTh:
+                'เปิดเว็บเซิร์ฟเวอร์จำลองเพื่อทดสอบเปิดดูไฟล์ในโฟลเดอร์ dist/ ในเครื่องเรา เพื่อตรวจสอบความเรียบร้อยก่อนนำไป deploy จริง',
+            },
+            {
+              command: 'npx <command>',
+              usageTh: 'npx create-vite my-app --template react-ts',
+              descriptionTh:
+                'รันคำสั่ง Executable ของ Node.js ชั่วคราวโดยไม่ต้องติดตั้งลงเครื่องถาวร หรือใช้รันเครื่องมือที่มีอยู่ใน node_modules/.bin/',
+            },
+          ],
+        },
+        {
+          groupTitleTh: '3. วิธีการ Deploy และลำดับที่เบราว์เซอร์เรียกไฟล์',
+          groupDescriptionTh:
+            'ความเข้าใจในการนำไฟล์ขึ้นเซิร์ฟเวอร์ และสิ่งที่เกิดขึ้นเมื่อลูกค้าเปิดหน้าเว็บ',
+          commands: [
+            {
+              command: '1. Deploy เฉพาะโฟลเดอร์ dist/',
+              usageTh: 'อัปโหลดเฉพาะโฟลเดอร์ dist/ ไปยัง Web Hosting',
+              descriptionTh:
+                'สิ่งที่นำไปขึ้นเซิร์ฟเวอร์มีเพียงไฟล์ใน dist/ เท่านั้น ห้ามนำ node_modules หรือ src/ ขึ้นไปเพราะหนักและไม่จำเป็น',
+            },
+            {
+              command: '2. ลูกค้าพิมพ์ URL -> ขอ index.html',
+              usageTh:
+                'Browser GET https://example.com/ -> Server ส่ง index.html',
+              descriptionTh:
+                'เซิร์ฟเวอร์จะคืนไฟล์ dist/index.html ซึ่งเป็นโครงสร้างตั้งต้นที่มีแท็ก <div id="root"></div> และลิงก์ไปยังไฟล์ JS/CSS ในโฟลเดอร์ assets',
+            },
+            {
+              command: '3. เบราว์เซอร์ดาวน์โหลด JS & CSS',
+              usageTh:
+                'Browser GET /assets/index-xxx.js และ /assets/index-xxx.css',
+              descriptionTh:
+                'เบราว์เซอร์อ่านแท็ก <script type="module" src="..."> และ <link rel="stylesheet"> ใน index.html แล้วส่งคำขอไปดาวน์โหลดโค้ดมาเก็บในเครื่อง',
+            },
+            {
+              command: '4. เครื่องลูกค้ารัน JS และวาดหน้าจอ (CSR)',
+              usageTh: 'Client CPU รัน React.createRoot(root).render(<App />)',
+              descriptionTh:
+                'เมื่อ JavaScript โหลดเสร็จ CPU ของผู้ใช้จะประมวลผลโค้ด React สร้างชิ้นส่วน DOM และใส่ลงไปในหน้าจอ ทำให้ผู้ใช้มองเห็นและกดใช้งานปุ่มต่างๆ ได้ทันที',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ] as const satisfies readonly LessonTopic[];
