@@ -171,4 +171,38 @@ describe('TK Learning Center', () => {
     expect(screen.getByText('/usage')).toBeInTheDocument();
     expect(screen.getByText('/quit')).toBeInTheDocument();
   });
+
+  it('opens and interacts with the React Visual Learning lesson', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /Frontend & React/i }));
+
+    const launchBtn = screen.getByRole('button', {
+      name: /เข้าสู่บทเรียน React Visual Learning/i,
+    });
+    expect(launchBtn).toBeInTheDocument();
+
+    await user.click(launchBtn);
+
+    expect(
+      screen.getByRole('heading', {
+        name: /React ทำงานอย่างไร/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Component-Based Architecture/i)).toBeInTheDocument();
+    expect(screen.getByText(/useState\(initialValue\)/i)).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', {
+        name: /ตัวแปร State และการส่งข้อมูล Props/i,
+      }),
+    );
+    expect(screen.getByText(/Lifting State Up/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /กลับหน้าหมวดหมู่/i }));
+    expect(
+      screen.getByRole('heading', { name: /หมวดหมู่ความรู้ทั้งหมด/i }),
+    ).toBeInTheDocument();
+  });
 });
