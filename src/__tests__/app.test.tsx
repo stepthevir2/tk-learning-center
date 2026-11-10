@@ -51,7 +51,7 @@ describe('TK Learning Center', () => {
     ).toBeInTheDocument();
   });
 
-  it('opens the Hermes Agent Thai visual lesson when clicking its card and navigates back', async () => {
+  it('opens the Hermes Agent Thai visual lesson and shows the left-hand navigator sidebar', async () => {
     const user = userEvent.setup();
     render(<App />);
 
@@ -65,6 +65,13 @@ describe('TK Learning Center', () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getByText(/Agent Harness/i)).toBeInTheDocument();
+
+    // Verify sidebar navigator exists
+    const sidebar = screen.getByLabelText(/สารบัญบทเรียน/i);
+    expect(within(sidebar).getByText(/เมนูนำทาง \(Navigator\)/i)).toBeInTheDocument();
+    expect(
+      within(sidebar).getByRole('button', { name: /สถาปัตยกรรม 4 เลเยอร์/i }),
+    ).toBeInTheDocument();
 
     await user.click(
       screen.getByRole('button', { name: /กลับหน้าหมวดหมู่/i }),
@@ -81,6 +88,12 @@ describe('TK Learning Center', () => {
 
     await user.click(
       screen.getByRole('button', { name: /เข้าสู่บทเรียน Hermes Agent/i }),
+    );
+
+    // Switch to Layers section via left-hand sidebar
+    const sidebar = screen.getByLabelText(/สารบัญบทเรียน/i);
+    await user.click(
+      within(sidebar).getByRole('button', { name: /สถาปัตยกรรม 4 เลเยอร์/i }),
     );
 
     const inspector = screen.getByTestId('layer-inspector');
@@ -116,6 +129,12 @@ describe('TK Learning Center', () => {
       screen.getByRole('button', { name: /เข้าสู่บทเรียน Hermes Agent/i }),
     );
 
+    // Switch to Workflow section via left-hand sidebar
+    const sidebar = screen.getByLabelText(/สารบัญบทเรียน/i);
+    await user.click(
+      within(sidebar).getByRole('button', { name: /วงจรการทำงาน 5 ขั้น/i }),
+    );
+
     const stepBox = screen.getByTestId('workflow-step-detail');
     expect(within(stepBox).getByText(/SOUL\.md/i)).toBeInTheDocument();
 
@@ -136,15 +155,25 @@ describe('TK Learning Center', () => {
       screen.getByRole('button', { name: /เข้าสู่บทเรียน Hermes Agent/i }),
     );
 
+    // Switch to Tiers section via left-hand sidebar
+    const sidebar = screen.getByLabelText(/สารบัญบทเรียน/i);
+    await user.click(
+      within(sidebar).getByRole('button', { name: /แผนภูมิบริบท & ความจำ/i }),
+    );
     expect(screen.getByText(/Stable Tier/i)).toBeInTheDocument();
     expect(screen.getByText(/KV Cache Hit 100%/i)).toBeInTheDocument();
+
+    // Switch to Permissions section via left-hand sidebar
+    await user.click(
+      within(sidebar).getByRole('button', { name: /แบบจำลองสิทธิ์ความปลอดภัย/i }),
+    );
 
     const permissionPanel = screen.getByTestId('permission-panel');
     expect(
       within(permissionPanel).getByText(/อนุมัติคำสั่งอ่านไฟล์อัตโนมัติ/i),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /โหมดสิทธิ์ Manual/i }));
+    await user.click(screen.getByRole('button', { name: /โหมด: Manual/i }));
     expect(
       within(permissionPanel).getByText(/ถามผู้ใช้ทุกครั้งก่อนรันเครื่องมือ/i),
     ).toBeInTheDocument();
@@ -156,6 +185,12 @@ describe('TK Learning Center', () => {
 
     await user.click(
       screen.getByRole('button', { name: /เข้าสู่บทเรียน Hermes Agent/i }),
+    );
+
+    // Switch to Commands section via left-hand sidebar
+    const sidebar = screen.getByLabelText(/สารบัญบทเรียน/i);
+    await user.click(
+      within(sidebar).getByRole('button', { name: /คลังคำสั่ง & คีย์ลัด/i }),
     );
 
     expect(
@@ -172,7 +207,7 @@ describe('TK Learning Center', () => {
     expect(screen.getByText('/quit')).toBeInTheDocument();
   });
 
-  it('opens and interacts with the React Visual Learning lesson', async () => {
+  it('opens and interacts with the React Visual Learning lesson using the left-hand navigator', async () => {
     const user = userEvent.setup();
     render(<App />);
 
@@ -185,14 +220,30 @@ describe('TK Learning Center', () => {
 
     await user.click(launchBtn);
 
+    // Verify React lesson header and overview section
     expect(
       screen.getByRole('heading', {
         name: /React ทำงานอย่างไร/i,
       }),
     ).toBeInTheDocument();
     expect(screen.getByText(/Component-Based Architecture/i)).toBeInTheDocument();
-    expect(screen.getByText(/useState\(initialValue\)/i)).toBeInTheDocument();
 
+    // Verify sidebar navigator with React-specific titles
+    const sidebar = screen.getByLabelText(/สารบัญบทเรียน/i);
+    expect(
+      within(sidebar).getByRole('button', {
+        name: /4 โครงสร้างหลัก \(Components & State\)/i,
+      }),
+    ).toBeInTheDocument();
+
+    // Switch to Layers section via left-hand navigator
+    await user.click(
+      within(sidebar).getByRole('button', {
+        name: /4 โครงสร้างหลัก \(Components & State\)/i,
+      }),
+    );
+
+    // Switch to State & Props layer
     await user.click(
       screen.getByRole('button', {
         name: /ตัวแปร State และการส่งข้อมูล Props/i,
@@ -200,6 +251,16 @@ describe('TK Learning Center', () => {
     );
     expect(screen.getByText(/Lifting State Up/i)).toBeInTheDocument();
 
+    // Switch to React Hooks & Syntax catalog via left-hand navigator
+    await user.click(
+      within(sidebar).getByRole('button', {
+        name: /คลัง React Hooks & Syntax/i,
+      }),
+    );
+    expect(screen.getByText(/useState\(initialValue\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/useEffect\(callback, deps\)/i)).toBeInTheDocument();
+
+    // Go back to category hub
     await user.click(screen.getByRole('button', { name: /กลับหน้าหมวดหมู่/i }));
     expect(
       screen.getByRole('heading', { name: /หมวดหมู่ความรู้ทั้งหมด/i }),
