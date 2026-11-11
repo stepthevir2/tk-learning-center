@@ -1,0 +1,8 @@
+services:
+  tk-learning-center:
+    build: .
+    image: tk-learning-center:latest
+    container_name: tk-learning-center
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8080:80"
