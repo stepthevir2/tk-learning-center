@@ -516,7 +516,9 @@ describe('TK Learning Center', () => {
     // Tab 1: Test packet sniffer with HTTP vs HTTPS
     await user.click(screen.getByRole('button', { name: /HTTP \(พอร์ต 80 ธรรมดา\)/i }));
     expect(screen.getByText(/Plaintext Leaked/i)).toBeInTheDocument();
-    expect(screen.getByText(/supersecretpassword123/i)).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/supersecretpassword123/i).length,
+    ).toBeGreaterThanOrEqual(1);
 
     await user.click(screen.getByRole('button', { name: /HTTPS \(พอร์ต 443 \+ TLS 1\.3\)/i }));
     expect(screen.getByText(/แพ็กเกจเจรจา TLS Handshake/i)).toBeInTheDocument();
@@ -528,10 +530,19 @@ describe('TK Learning Center', () => {
     await user.click(screen.getByRole('button', { name: /ก้าวต่อไป/i }));
     expect(screen.getByText(/ข้อมูลถูกเข้ารหัสสมบูรณ์/i)).toBeInTheDocument();
 
-    // Tab 2: Test PKI Chain of Trust and Browser Mockup
+    // Tab 2: Diffie-Hellman Key Exchange (ECDHE Simulator)
     await user.click(
       screen.getByRole('button', {
-        name: /2\. ห่วงโซ่ความเชื่อถือ \(Chain of Trust\) & Browser Lock/i,
+        name: /Diffie-Hellman Key Exchange/i,
+      }),
+    );
+    expect(screen.getByText(/อุปมาการแลกเปลี่ยนกุญแจลับด้วยโมเดลผสมสี/i)).toBeInTheDocument();
+    expect(screen.getByText(/ผลลัพธ์อันน่าทึ่ง/i)).toBeInTheDocument();
+
+    // Tab 3: Test PKI Chain of Trust and Browser Mockup
+    await user.click(
+      screen.getByRole('button', {
+        name: /ห่วงโซ่ความเชื่อถือ \(Chain of Trust\) & Browser Lock/i,
       }),
     );
     expect(screen.getByText(/ISRG Root X1/i)).toBeInTheDocument();
@@ -542,10 +553,10 @@ describe('TK Learning Center', () => {
     expect(screen.getByText('NET::ERR_CERT_DATE_INVALID')).toBeInTheDocument();
     expect(screen.getByText(/ไม่ปลอดภัย \(Not Secure\)/i)).toBeInTheDocument();
 
-    // Tab 3: OpenSSL & Certbot Command Generator
+    // Tab 4: OpenSSL & Certbot Command Generator
     await user.click(
       screen.getByRole('button', {
-        name: /3\. เครื่องมือคำสั่ง OpenSSL & Certbot/i,
+        name: /เครื่องมือคำสั่ง OpenSSL & Certbot/i,
       }),
     );
     expect(

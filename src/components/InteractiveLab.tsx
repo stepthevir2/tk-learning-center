@@ -671,22 +671,52 @@ function HermesAgentLab() {
 // -------------------------------------------------------------
 // 6. HTTPS & Certificate Lab
 // -------------------------------------------------------------
-type HttpsLabTab = 'handshake' | 'pki-chain' | 'cli-generator';
+type HttpsLabTab = 'handshake' | 'diffie-hellman' | 'pki-chain' | 'cli-generator';
 type PkiScenario = 'valid' | 'expired' | 'self-signed' | 'mismatched-domain';
 
 export function HttpsCertificateLab() {
   const [activeTab, setActiveTab] = useState<HttpsLabTab>('handshake');
 
-  // Tab 1: Handshake & Packet Sniffer
+  // Tab 1: Handshake & Packet Flight Sniffer
   const [handshakeStep, setHandshakeStep] = useState<number>(1);
   const [protocol, setProtocol] = useState<'http' | 'https'>('https');
+  const [customPayload, setCustomPayload] = useState<string>(
+    '{"username":"admin","password":"supersecretpassword123","credit_card":"4111-2222-3333-4444"}',
+  );
+  const [isTransmitting, setIsTransmitting] = useState<boolean>(false);
+  const [isTampered, setIsTampered] = useState<boolean>(false);
+  const [packetLocation, setPacketLocation] = useState<'client' | 'wire' | 'server'>('client');
 
-  // Tab 2: PKI Chain & Browser Lock Simulator
+  // Tab 2: Diffie-Hellman ECDHE Visualizer
+  const [clientSecretInt, setClientSecretInt] = useState<number>(6);
+  const [serverSecretInt, setServerSecretInt] = useState<number>(15);
+  const dhGenerator = 5;
+  const dhPrime = 23;
+  // Math: (g^a) mod p and (g^b) mod p
+  const clientPublicDh = Math.pow(dhGenerator, clientSecretInt) % dhPrime;
+  const serverPublicDh = Math.pow(dhGenerator, serverSecretInt) % dhPrime;
+  const clientMasterSecret = Math.pow(serverPublicDh, clientSecretInt) % dhPrime;
+  const serverMasterSecret = Math.pow(clientPublicDh, serverSecretInt) % dhPrime;
+
+  // Tab 3: PKI Chain & Browser Lock Simulator
   const [pkiScenario, setPkiScenario] = useState<PkiScenario>('valid');
+  const [isCertTampered, setIsCertTampered] = useState<boolean>(false);
 
-  // Tab 3: CLI Generator
+  // Tab 4: CLI Generator
   const [cliPreset, setCliPreset] = useState<number>(1);
   const [copiedCli, setCopiedCli] = useState<boolean>(false);
+
+  const handleTransmitPacket = () => {
+    setIsTransmitting(true);
+    setPacketLocation('client');
+    setTimeout(() => {
+      setPacketLocation('wire');
+    }, 600);
+    setTimeout(() => {
+      setPacketLocation('server');
+      setIsTransmitting(false);
+    }, 1400);
+  };
 
   const handshakeSteps = [
     {
@@ -760,17 +790,24 @@ export function HttpsCertificateLab() {
         </button>
         <button
           type="button"
+          className={`lab-btn ${activeTab === 'diffie-hellman' ? 'primary' : ''}`}
+          onClick={() => setActiveTab('diffie-hellman')}
+        >
+          🎨 2. Diffie-Hellman Key Exchange (ECDHE Simulator)
+        </button>
+        <button
+          type="button"
           className={`lab-btn ${activeTab === 'pki-chain' ? 'primary' : ''}`}
           onClick={() => setActiveTab('pki-chain')}
         >
-          🏛️ 2. ห่วงโซ่ความเชื่อถือ (Chain of Trust) & Browser Lock
+          🏛️ 3. ห่วงโซ่ความเชื่อถือ (Chain of Trust) & Browser Lock
         </button>
         <button
           type="button"
           className={`lab-btn ${activeTab === 'cli-generator' ? 'primary' : ''}`}
           onClick={() => setActiveTab('cli-generator')}
         >
-          ⌨️ 3. เครื่องมือคำสั่ง OpenSSL & Certbot
+          ⌨️ 4. เครื่องมือคำสั่ง OpenSSL & Certbot
         </button>
       </div>
 
@@ -863,6 +900,100 @@ export function HttpsCertificateLab() {
             </div>
           )}
 
+          {/* Interactive Live Packet Flight Transmitter */}
+          <div className="packet-flight-box">
+            <div className="packet-flight-header">
+              <div className="flight-title">
+                🚀 <strong>จำลองการยิงข้อมูลผ่านเครือข่ายจริง (Live Packet Transmission Simulator)</strong>
+              </div>
+              <div className="flight-actions">
+                <span className="preset-label">ตัวอย่างข้อมูล:</span>
+                <button
+                  type="button"
+                  className="preset-btn"
+                  onClick={() =>
+                    setCustomPayload('{"user":"admin","password":"supersecretpassword123","credit_card":"4111-2222-3333-4444"}')
+                  }
+                >
+                  🔑 รหัสผ่าน & บัตร
+                </button>
+                <button
+                  type="button"
+                  className="preset-btn"
+                  onClick={() =>
+                    setCustomPayload('{"action":"transfer","to":"089-123-4567","amount":50000,"currency":"THB"}')
+                  }
+                >
+                  💸 โอนเงิน 50,000฿
+                </button>
+                <button
+                  type="button"
+                  className="preset-btn"
+                  onClick={() =>
+                    setCustomPayload('{"auth":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."}')
+                  }
+                >
+                  🪙 JWT Secret Token
+                </button>
+              </div>
+            </div>
+
+            <div className="packet-input-row">
+              <input
+                type="text"
+                className="packet-payload-input"
+                value={customPayload}
+                onChange={(e) => setCustomPayload(e.target.value)}
+                placeholder="ระบุข้อความหรือ JSON Payload ที่ต้องการส่ง..."
+              />
+              <button
+                type="button"
+                className={`lab-btn primary ${isTransmitting ? 'transmitting' : ''}`}
+                onClick={handleTransmitPacket}
+                disabled={isTransmitting}
+              >
+                {isTransmitting ? '⏳ กำลังส่งข้อมูล...' : '🚀 ยิงแพ็กเก็ต (Send Packet)'}
+              </button>
+              <label className="tamper-checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={isTampered}
+                  onChange={(e) => setIsTampered(e.target.checked)}
+                />
+                <span>🚨 จำลองแฮกเกอร์แอบแก้ข้อมูล (Tamper Attack)</span>
+              </label>
+            </div>
+
+            {/* Flight Pipeline Track */}
+            <div className="flight-pipeline-track">
+              <div className={`station-badge ${packetLocation === 'client' ? 'active' : ''}`}>
+                💻 Client (Browser)
+              </div>
+              <div className="pipeline-wire">
+                <div
+                  className={`packet-capsule ${protocol === 'http' ? 'insecure' : 'secure'} ${
+                    isTransmitting ? 'in-flight' : ''
+                  }`}
+                >
+                  {protocol === 'http'
+                    ? isTampered
+                      ? '⚠️ [HTTP TAMPERED DATA]'
+                      : '🔓 [HTTP PLAINTEXT DATA]'
+                    : isTampered
+                      ? '💥 [TAMPERED CIPHERTEXT]'
+                      : '🔒 [AES-256-GCM ENCRYPTED]'}
+                </div>
+              </div>
+              <div className={`station-badge hacker-station ${packetLocation === 'wire' ? 'active' : ''}`}>
+                🕵️‍♂️ Wi-Fi Sniffer (Wiretap)
+              </div>
+              <div className="pipeline-wire"></div>
+              <div className={`station-badge ${packetLocation === 'server' ? 'active' : ''}`}>
+                🖥️ Web Server (:443)
+              </div>
+            </div>
+          </div>
+
           {/* 3-Actor Data Flow & Hacker Sniffer View */}
           <div className="https-actors-grid">
             <div className="actor-box client-box">
@@ -872,7 +1003,7 @@ export function HttpsCertificateLab() {
                   <strong>โดเมนเป้าหมาย:</strong> example.com
                 </p>
                 <p>
-                  <strong>คำขอ HTTP:</strong> POST /api/login
+                  <strong>คำขอ HTTP:</strong> POST /api/checkout
                 </p>
                 <div className="actor-secret-badge">
                   {protocol === 'https' && handshakeStep >= 4
@@ -881,32 +1012,46 @@ export function HttpsCertificateLab() {
                       ? '⏳ กำลังเจรจา Handshake'
                       : '🔓 ส่งข้อมูลแบบ Plaintext'}
                 </div>
+                <div className="client-data-preview">
+                  <span className="preview-label">Payload ก่อนส่ง:</span>
+                  <code>{customPayload}</code>
+                </div>
               </div>
             </div>
 
             <div className="actor-box sniffer-box">
               <div className="sniffer-header">
-                🕵️ บุคคลกลางทาง / แฮกเกอร์ (Packet Sniffer on Public Wi-Fi)
+                🕵️‍♂️ บุคคลกลางทาง / แฮกเกอร์ (Packet Sniffer on Public Wi-Fi)
               </div>
               <div className="sniffer-content">
                 {protocol === 'http' ? (
                   <div className="sniffer-alert alert-danger">
                     <div className="alert-badge">🚨 ข้อความเปิดเผย (Plaintext Leaked!)</div>
                     <pre className="packet-dump">
-{`POST /api/login HTTP/1.1
+{`POST /api/checkout HTTP/1.1
 Host: example.com
-User-Agent: Mozilla/5.0
 Content-Type: application/json
 
-{
-  "username": "admin",
-  "password": "supersecretpassword123",
-  "credit_card": "4111-2222-3333-4444"
+${
+  isTampered
+    ? '{"user":"admin","action":"transfer","to":"HACKER_ACCOUNT_999","amount":9999999}'
+    : customPayload.includes('supersecretpassword123')
+      ? `POST /api/login HTTP/1.1\nHost: example.com\nUser-Agent: Mozilla/5.0\nContent-Type: application/json\n\n{\n  "username": "admin",\n  "password": "supersecretpassword123",\n  "credit_card": "4111-2222-3333-4444"\n}`
+      : customPayload
 }`}
                     </pre>
                     <p className="danger-text">
-                      ⚠️ <strong>อันตรายร้ายแรง:</strong> บุคคลในเครือข่าย Wi-Fi เดียวกันหรือ ISP
-                      สามารถดักจับและอ่านรหัสผ่านและบัตรเครดิตได้ตรง ๆ 100%!
+                      {isTampered ? (
+                        <>
+                          💥 <strong>ข้อมูลถูกดัดแปลงสำเร็จ!</strong> เพราะ HTTP ไม่มีลายเซ็นรับรอง (MAC)
+                          แฮกเกอร์สามารถดักแก้เลขบัญชีหรือยอดเงินได้ตามใจชอบ โดยที่ระบบไม่รู้ตัวเลย!
+                        </>
+                      ) : (
+                        <>
+                          ⚠️ <strong>อันตรายร้ายแรง:</strong> บุคคลในเครือข่าย Wi-Fi เดียวกันหรือ ISP
+                          สามารถดักจับและอ่านรหัสผ่านและบัตรเครดิตได้ตรง ๆ 100%!
+                        </>
+                      )}
                     </p>
                   </div>
                 ) : handshakeStep < 5 ? (
@@ -930,22 +1075,35 @@ ServerHello:
                     </p>
                   </div>
                 ) : (
-                  <div className="sniffer-alert alert-success">
-                    <div className="alert-badge">🔒 ข้อมูลถูกเข้ารหัสสมบูรณ์ (AES-256-GCM)</div>
+                  <div className={`sniffer-alert ${isTampered ? 'alert-danger' : 'alert-success'}`}>
+                    <div className="alert-badge">
+                      {isTampered
+                        ? '🚨 พบความพยายามดัดแปลง Ciphertext!'
+                        : '🔒 ข้อมูลถูกเข้ารหัสสมบูรณ์ (AES-256-GCM)'}
+                    </div>
                     <pre className="packet-dump">
 {`TLS 1.3 Record Layer [Application Data]:
-Length: 128 bytes
+Length: ${customPayload.length + 32} bytes
 Payload (Encrypted Ciphertext):
 9e a1 4f 8b 21 c7 34 f0 8a dd 12 9c 5e b3 78 fa
 18 c0 39 ff 71 a2 e4 50 bb 6d 81 29 0e 4a c8 9d
 31 f6 02 a9 e3 b4 c1 77 88 da 52 14 f7 99 2b 88
 
 AEAD Auth Tag (Integrity):
-8e f4 1b 3a d5 c2 77 90 (HMAC Validated)`}
+${isTampered ? 'XX BAD_MAC_FAIL 00 00 (SIGNATURE INVALID!)' : '8e f4 1b 3a d5 c2 77 90 (HMAC Validated)'}`}
                     </pre>
-                    <p className="success-text">
-                      🛡️ <strong>ปลอดภัยสูงสุด:</strong> ข้อมูลถูกเข้ารหัสด้วย AES-256
-                      แฮกเกอร์ต้องใช้เวลาคำนวณนับพันล้านปีเพื่อเจาะรหัสข้อมูลก้อนนี้!
+                    <p className={isTampered ? 'danger-text' : 'success-text'}>
+                      {isTampered ? (
+                        <>
+                          🛡️ <strong>ป้องกันสำเร็จ:</strong> แฮกเกอร์พยายามแอบแก้ข้อมูลในไบนารี แต่ระบบ
+                          AEAD (Authenticated Encryption) ตรวจพบว่า Auth Tag ไม่ตรง จึงสั่ง Drop แพ็กเก็ตทิ้งทันที!
+                        </>
+                      ) : (
+                        <>
+                          🛡️ <strong>ปลอดภัยสูงสุด:</strong> ข้อมูลถูกเข้ารหัสด้วย AES-256
+                          แฮกเกอร์ต้องใช้เวลาคำนวณนับพันล้านปีเพื่อเจาะรหัสข้อมูลก้อนนี้!
+                        </>
+                      )}
                     </p>
                   </div>
                 )}
@@ -962,13 +1120,151 @@ AEAD Auth Tag (Integrity):
                   <strong>การเข้ารหัส:</strong> TLS 1.3 / AES-256-GCM
                 </p>
                 <div className="actor-secret-badge">
-                  {protocol === 'https' && handshakeStep === 5
-                    ? '✅ ถอดรหัสคำขอสำเร็จ ส่งต่อแอป'
-                    : protocol === 'https'
-                      ? '🔑 มีกุญแจ Private Key (privkey.pem)'
-                      : '⚠️ พอร์ต 80 ไม่ปลอดภัย'}
+                  {protocol === 'https' && isTampered
+                    ? '❌ TLS Record MAC Failed (Drop Packet)'
+                    : protocol === 'https' && handshakeStep === 5
+                      ? '✅ ถอดรหัสคำขอสำเร็จ ส่งต่อแอป'
+                      : protocol === 'https'
+                        ? '🔑 มีกุญแจ Private Key (privkey.pem)'
+                        : '⚠️ พอร์ต 80 ไม่ปลอดภัย'}
+                </div>
+                <div className="server-data-preview">
+                  <span className="preview-label">ผลลัพธ์ที่ Server ได้รับ:</span>
+                  {protocol === 'https' && isTampered ? (
+                    <div className="server-status error">💥 400 Bad Request: TLS MAC Verification Failed!</div>
+                  ) : protocol === 'https' && handshakeStep < 5 ? (
+                    <div className="server-status wait">⏳ กำลังรอ Handshake ให้เสร็จสิ้น...</div>
+                  ) : (
+                    <div className="server-status ok">
+                      <code>{isTampered && protocol === 'http' ? '{"user":"admin","action":"transfer","to":"HACKER"}' : customPayload}</code>
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* -------------------------------------------------------- */}
+      {/* Tab 2: Diffie-Hellman Key Exchange (ECDHE Simulator)    */}
+      {/* -------------------------------------------------------- */}
+      {activeTab === 'diffie-hellman' && (
+        <div className="https-tab-content">
+          <div className="dh-explanation-banner">
+            <h4>🎨 อุปมาการแลกเปลี่ยนกุญแจลับด้วยโมเดลผสมสี (Diffie-Hellman Key Exchange)</h4>
+            <p>
+              คำถามที่หลายคนสงสัย: <em>"ถ้าเราส่งกุญแจผ่านสายแลน แฮกเกอร์ก็ดักจับกุญแจได้สิ แล้ว HTTPS ทำอย่างไรให้ทั้งสองฝ่ายมีกุญแจตรงกันโดยไม่ต้องส่งกุญแจลับ?"</em>
+              <br />
+              คำตอบคือการใช้ <strong>คณิตศาสตร์ทางเดียว (One-Way Mathematical Function)</strong> เปรียบเสมือนการผสมสีที่ผสมง่ายแต่แยกสียากมาก!
+            </p>
+          </div>
+
+          <div className="dh-interactive-grid">
+            {/* Alice (Browser) */}
+            <div className="dh-card client-dh">
+              <div className="dh-card-header">💻 ฝั่งไคลเอนต์ (Alice / Browser)</div>
+              <div className="dh-card-body">
+                <div className="color-swatch-box">
+                  <span className="swatch-label">1. สีลับส่วนตัว (Private Secret a):</span>
+                  <div className="color-badge blue">🟦 สีน้ำเงินลับ (Blue)</div>
+                  <div className="slider-control">
+                    <label>ค่าลับส่วนตัว a: <strong>{clientSecretInt}</strong></label>
+                    <input
+                      type="range"
+                      min="2"
+                      max="20"
+                      value={clientSecretInt}
+                      onChange={(e) => setClientSecretInt(Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+
+                <div className="color-swatch-box">
+                  <span className="swatch-label">2. ผสมกับสีสาธารณะ 🟨 (Public Base g=5, p=23):</span>
+                  <div className="color-badge cyan">
+                    🟩 สีผสมสาธารณะ (Cyan Share A = {clientPublicDh})
+                  </div>
+                  <p className="math-desc">สูตร: 5^{clientSecretInt} mod 23 = <strong>{clientPublicDh}</strong></p>
+                </div>
+
+                <div className="color-swatch-box highlight-secret">
+                  <span className="swatch-label">3. นำสีผสมของ Server มาผสมกับสีลับ a:</span>
+                  <div className="color-badge brown">
+                    🟫 กุญแจลับสมบูรณ์ (Master Key S = {clientMasterSecret})
+                  </div>
+                  <p className="math-desc">สูตร: {serverPublicDh}^{clientSecretInt} mod 23 = <strong>{clientMasterSecret}</strong></p>
+                </div>
+              </div>
+            </div>
+
+            {/* Hacker in the middle */}
+            <div className="dh-card sniffer-dh">
+              <div className="dh-card-header">🕵️‍♂️ สายส่งสาธารณะ & แฮกเกอร์ (Eve)</div>
+              <div className="dh-card-body">
+                <div className="public-intercept-box">
+                  <span className="intercept-title">สิ่งที่วิ่งผ่านสายอินเทอร์เน็ตที่ใครก็เห็น:</span>
+                  <ul>
+                    <li>🟨 สีพื้นฐานร่วม (Public Generator g=5, Prime p=23)</li>
+                    <li>🟩 สีผสมของ Alice (Public Share A = <strong>{clientPublicDh}</strong>)</li>
+                    <li>🟧 สีผสมของ Bob (Public Share B = <strong>{serverPublicDh}</strong>)</li>
+                  </ul>
+                </div>
+                <div className="dh-eve-status">
+                  <div className="eve-badge">🛡️ ไม่สามารถแยกสีกลับได้!</div>
+                  <p>
+                    แฮกเกอร์รู้เฉพาะสีที่ผสมแล้ว (Cyan={clientPublicDh} และ Orange={serverPublicDh}) แต่ในทางคณิตศาสตร์
+                    การคำนวณย้อนกลับเพื่อหาสีลับน้ำเงินหรือแดง เรียกว่า <strong>Discrete Logarithm Problem</strong>
+                    ซึ่งต้องใช้คอมพิวเตอร์คำนวณเป็นล้านปี!
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bob (Server) */}
+            <div className="dh-card server-dh">
+              <div className="dh-card-header">🖥️ ฝั่งเซิร์ฟเวอร์ (Bob / Nginx)</div>
+              <div className="dh-card-body">
+                <div className="color-swatch-box">
+                  <span className="swatch-label">1. สีลับส่วนตัว (Private Secret b):</span>
+                  <div className="color-badge red">🟥 สีแดงลับ (Red)</div>
+                  <div className="slider-control">
+                    <label>ค่าลับส่วนตัว b: <strong>{serverSecretInt}</strong></label>
+                    <input
+                      type="range"
+                      min="2"
+                      max="20"
+                      value={serverSecretInt}
+                      onChange={(e) => setServerSecretInt(Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+
+                <div className="color-swatch-box">
+                  <span className="swatch-label">2. ผสมกับสีสาธารณะ 🟨 (Public Base g=5, p=23):</span>
+                  <div className="color-badge orange">
+                    🟧 สีผสมสาธารณะ (Orange Share B = {serverPublicDh})
+                  </div>
+                  <p className="math-desc">สูตร: 5^{serverSecretInt} mod 23 = <strong>{serverPublicDh}</strong></p>
+                </div>
+
+                <div className="color-swatch-box highlight-secret">
+                  <span className="swatch-label">3. นำสีผสมของ Client มาผสมกับสีลับ b:</span>
+                  <div className="color-badge brown">
+                    🟫 กุญแจลับสมบูรณ์ (Master Key S = {serverMasterSecret})
+                  </div>
+                  <p className="math-desc">สูตร: {clientPublicDh}^{serverSecretInt} mod 23 = <strong>{serverMasterSecret}</strong></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="dh-summary-banner">
+            <div className="summary-icon">🎉</div>
+            <div className="summary-text">
+              <strong>ผลลัพธ์อันน่าทึ่ง:</strong> ทั้ง Client และ Server ได้กุญแจลับเดียวกันคือ{' '}
+              <span className="key-highlight">S = {clientMasterSecret}</span> โดยที่กุญแจตัวเลขนี้
+              <strong>ไม่เคยถูกส่งผ่านสายส่งอินเทอร์เน็ตแม้แต่ครั้งเดียว!</strong> จากนั้นทั้งสองฝ่ายจึงนำกุญแจนี้ไปใช้กับ AES-256 เพื่อเข้ารหัสข้อมูลเว็บ
             </div>
           </div>
         </div>
@@ -984,31 +1280,50 @@ AEAD Auth Tag (Integrity):
             <div className="btn-toggle-group">
               <button
                 type="button"
-                className={`lab-btn ${pkiScenario === 'valid' ? 'primary' : ''}`}
-                onClick={() => setPkiScenario('valid')}
+                className={`lab-btn ${pkiScenario === 'valid' && !isCertTampered ? 'primary' : ''}`}
+                onClick={() => {
+                  setPkiScenario('valid');
+                  setIsCertTampered(false);
+                }}
               >
                 ✅ ใบรับรองถูกต้องสมบูรณ์ (Let's Encrypt)
               </button>
               <button
                 type="button"
                 className={`lab-btn ${pkiScenario === 'expired' ? 'warning' : ''}`}
-                onClick={() => setPkiScenario('expired')}
+                onClick={() => {
+                  setPkiScenario('expired');
+                  setIsCertTampered(false);
+                }}
               >
                 ⏰ ใบรับรองหมดอายุ (Expired)
               </button>
               <button
                 type="button"
                 className={`lab-btn ${pkiScenario === 'self-signed' ? 'warning' : ''}`}
-                onClick={() => setPkiScenario('self-signed')}
+                onClick={() => {
+                  setPkiScenario('self-signed');
+                  setIsCertTampered(false);
+                }}
               >
                 ❓ ใบรับรองเซ็นเอง (Self-Signed)
               </button>
               <button
                 type="button"
                 className={`lab-btn ${pkiScenario === 'mismatched-domain' ? 'warning' : ''}`}
-                onClick={() => setPkiScenario('mismatched-domain')}
+                onClick={() => {
+                  setPkiScenario('mismatched-domain');
+                  setIsCertTampered(false);
+                }}
               >
                 ❌ โดเมนไม่ตรง (Mismatched SAN)
+              </button>
+              <button
+                type="button"
+                className={`lab-btn ${isCertTampered ? 'warning' : ''}`}
+                onClick={() => setIsCertTampered((prev) => !prev)}
+              >
+                🚨 {isCertTampered ? 'ปิดการปลอมแปลง' : 'จำลองแฮกเกอร์ปลอมใบรับรอง (Tamper)'}
               </button>
             </div>
           </div>
@@ -1021,17 +1336,17 @@ AEAD Auth Tag (Integrity):
                 <span className="dot dot-yellow" />
                 <span className="dot dot-green" />
               </div>
-              <div className={`browser-address-bar ${pkiScenario === 'valid' ? 'secure' : 'insecure'}`}>
+              <div className={`browser-address-bar ${pkiScenario === 'valid' && !isCertTampered ? 'secure' : 'insecure'}`}>
                 <span className="lock-icon">
-                  {pkiScenario === 'valid' ? '🔒' : '⚠️'}
+                  {pkiScenario === 'valid' && !isCertTampered ? '🔒' : '⚠️'}
                 </span>
                 <span className="address-scheme">
-                  {pkiScenario === 'valid' ? 'https://' : 'https://'}
+                  {pkiScenario === 'valid' && !isCertTampered ? 'https://' : 'https://'}
                 </span>
                 <span className="address-domain">example.com</span>
                 <span className="address-path">/checkout</span>
                 <span className="security-status-badge">
-                  {pkiScenario === 'valid'
+                  {pkiScenario === 'valid' && !isCertTampered
                     ? 'ปลอดภัย (Secure Connection)'
                     : 'ไม่ปลอดภัย (Not Secure)'}
                 </span>
@@ -1039,7 +1354,7 @@ AEAD Auth Tag (Integrity):
             </div>
 
             <div className="browser-viewport">
-              {pkiScenario === 'valid' ? (
+              {pkiScenario === 'valid' && !isCertTampered ? (
                 <div className="browser-page-secure">
                   <div className="secure-modal-popup">
                     <div className="modal-title">
@@ -1071,21 +1386,32 @@ AEAD Auth Tag (Integrity):
                     <div className="warning-triangle">⚠️</div>
                     <h3>การเชื่อมต่อของคุณไม่เป็นส่วนตัว</h3>
                     <p className="error-code">
-                      {pkiScenario === 'expired'
-                        ? 'NET::ERR_CERT_DATE_INVALID'
-                        : pkiScenario === 'self-signed'
-                          ? 'NET::ERR_CERT_AUTHORITY_INVALID'
-                          : 'NET::ERR_CERT_COMMON_NAME_INVALID'}
+                      {isCertTampered
+                        ? 'NET::ERR_CERT_AUTHORITY_INVALID (TAMPER_DETECTED)'
+                        : pkiScenario === 'expired'
+                          ? 'NET::ERR_CERT_DATE_INVALID'
+                          : pkiScenario === 'self-signed'
+                            ? 'NET::ERR_CERT_AUTHORITY_INVALID'
+                            : 'NET::ERR_CERT_COMMON_NAME_INVALID'}
                     </p>
                     <p className="error-explanation">
-                      {pkiScenario === 'expired'
-                        ? 'ผู้โจมตีอาจพยายามขโมยข้อมูลของคุณจาก example.com ใบรับรองความปลอดภัยของไซต์นี้หมดอายุแล้ว'
-                        : pkiScenario === 'self-signed'
-                          ? 'เบราว์เซอร์ไม่รู้จักหน่วยงานผู้ออกใบรับรองนี้ (Untrusted Issuer) ใบรับรองนี้อาจถูกสร้างขึ้นมาเองโดยไม่ได้ผ่านการรับรองจาก Root CA'
-                          : 'ใบรับรองความปลอดภัยของเซิร์ฟเวอร์นี้ออกให้แก่ badguy.com ไม่ตรงกับชื่อโดเมน example.com ที่คุณเข้าใช้งาน'}
+                      {isCertTampered
+                        ? '🚨 ตรวจพบการปลอมแปลงใบรับรอง (Forged Certificate Attack)! แฮกเกอร์พยายามปลอมใบรับรองเป็น example.com แต่เนื่องจากแฮกเกอร์ไม่มีกุญแจลับ Private Key ของ Let\'s Encrypt R3 มาเซ็นกำกับ ลายเซ็นดิจิทัลจึงไม่ตรงกับ Hash ของใบรับรอง เบราว์เซอร์จึงบล็อกการเชื่อมต่อทันที 100%!'
+                        : pkiScenario === 'expired'
+                          ? 'ผู้โจมตีอาจพยายามขโมยข้อมูลของคุณจาก example.com ใบรับรองความปลอดภัยของไซต์นี้หมดอายุแล้ว'
+                          : pkiScenario === 'self-signed'
+                            ? 'เบราว์เซอร์ไม่รู้จักหน่วยงานผู้ออกใบรับรองนี้ (Untrusted Issuer) ใบรับรองนี้อาจถูกสร้างขึ้นมาเองโดยไม่ได้ผ่านการรับรองจาก Root CA'
+                            : 'ใบรับรองความปลอดภัยของเซิร์ฟเวอร์นี้ออกให้แก่ badguy.com ไม่ตรงกับชื่อโดเมน example.com ที่คุณเข้าใช้งาน'}
                     </p>
                     <div className="warning-buttons">
-                      <button type="button" className="btn-back-safety">
+                      <button
+                        type="button"
+                        className="btn-back-safety"
+                        onClick={() => {
+                          setPkiScenario('valid');
+                          setIsCertTampered(false);
+                        }}
+                      >
                         กลับสู่ความปลอดภัย (แนะนำ)
                       </button>
                       <button type="button" className="btn-advanced">

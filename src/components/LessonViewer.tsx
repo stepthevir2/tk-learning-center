@@ -73,7 +73,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
     },
     {
       id: 'lab',
-      labelTh: '🧪 ห้องทดลอง Interactive Lab',
+      labelTh: isHttps
+        ? 'ห้องทดลอง Interactive Lab (HTTPS Simulator)'
+        : 'ห้องทดลอง Interactive Lab',
       icon: '🧪',
     },
     {
@@ -233,6 +235,25 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                           ? '3 เสาหลักความปลอดภัย HTTPS (SSL/TLS & PKI Pillars)'
                           : '3 เสาหลักทางสถาปัตยกรรม (Core Architectural Pillars)'}
               </h3>
+
+              {isHttps && (
+                <div className="simulator-hero-cta">
+                  <div className="hero-cta-badge">⚡ Interactive Learning Simulator</div>
+                  <h4 className="hero-cta-title">อยากเห็นภาพจริงของการเข้ารหัสและดักจับแพ็กเก็ตใช่ไหม?</h4>
+                  <p className="hero-cta-desc">
+                    คุณสามารถทดลองส่งข้อมูลผ่านสายเคเบิล, ดักฟังแพ็กเก็ตด้วย Wireshark, ผสมสีกุญแจลับ Diffie-Hellman
+                    และจำลองแฮกเกอร์แอบปลอมแปลงใบรับรองแบบโต้ตอบได้ในเครื่องจำลอง
+                  </p>
+                  <button
+                    type="button"
+                    className="hero-cta-btn"
+                    onClick={() => setActiveSection('lab')}
+                  >
+                    🧪 เปิดเครื่องจำลอง HTTPS Visual Simulator ทันที →
+                  </button>
+                </div>
+              )}
+
               <div className="pillar-grid">
                 {content.pillars.map((pillar) => (
                   <div key={pillar.titleTh} className="pillar-card">
