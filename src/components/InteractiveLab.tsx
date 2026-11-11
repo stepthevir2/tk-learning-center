@@ -18,6 +18,9 @@ export function InteractiveLab({ topicId }: InteractiveLabProps) {
   if (topicId === 'npm-build-deploy') {
     return <NpmBuildDeployLab />;
   }
+  if (topicId === 'https-certificate') {
+    return <HttpsCertificateLab />;
+  }
   return <HermesAgentLab />;
 }
 
@@ -664,3 +667,726 @@ function HermesAgentLab() {
     </div>
   );
 }
+
+// -------------------------------------------------------------
+// 6. HTTPS & Certificate Lab
+// -------------------------------------------------------------
+type HttpsLabTab = 'handshake' | 'pki-chain' | 'cli-generator';
+type PkiScenario = 'valid' | 'expired' | 'self-signed' | 'mismatched-domain';
+
+export function HttpsCertificateLab() {
+  const [activeTab, setActiveTab] = useState<HttpsLabTab>('handshake');
+
+  // Tab 1: Handshake & Packet Sniffer
+  const [handshakeStep, setHandshakeStep] = useState<number>(1);
+  const [protocol, setProtocol] = useState<'http' | 'https'>('https');
+
+  // Tab 2: PKI Chain & Browser Lock Simulator
+  const [pkiScenario, setPkiScenario] = useState<PkiScenario>('valid');
+
+  // Tab 3: CLI Generator
+  const [cliPreset, setCliPreset] = useState<number>(1);
+  const [copiedCli, setCopiedCli] = useState<boolean>(false);
+
+  const handshakeSteps = [
+    {
+      num: 1,
+      nameTh: 'Client Hello',
+      descTh:
+        'เบราว์เซอร์ส่งข้อความ Client Hello ระบุ Cipher Suites ที่รองรับ (เช่น TLS_AES_256_GCM_SHA384), ชื่อโดเมนที่ต้องการเข้าผ่าน SNI (example.com) และค่า Public Key Share ของตนเอง (ECDHE x25519)',
+      badge: 'Client -> Server',
+    },
+    {
+      num: 2,
+      nameTh: 'Server Hello & Key Share',
+      descTh:
+        'เซิร์ฟเวอร์ตอบรับข้อตกลง เลือก Cipher Suite ที่ปลอดภัยที่สุด และส่งค่า Public Key Share ของฝั่งเซิร์ฟเวอร์กลับมาในรอบเดียว (1-RTT)',
+      badge: 'Server -> Client',
+    },
+    {
+      num: 3,
+      nameTh: 'Encrypted Certificate & Signature',
+      descTh:
+        'เซิร์ฟเวอร์ส่งใบรับรองดิจิทัล X.509 (fullchain.pem) และประทับลายเซ็นดิจิทัลยืนยันตัวตน เบราว์เซอร์ตรวจสอบย้อนกลับไปยัง Root CA ใน Trust Store',
+      badge: 'Server -> Client (Encrypted)',
+    },
+    {
+      num: 4,
+      nameTh: 'ECDHE Shared Secret Derivation',
+      descTh:
+        'ทั้งสองฝั่งคำนวณสูตรคณิตศาสตร์ Diffie-Hellman ในเครื่องตนเอง ทำให้ได้กุญแจลับสมมาตร (Symmetric Master Key) ตรงกัน 100% โดยไม่มีการส่งกุญแจนี้ข้ามอินเทอร์เน็ต',
+      badge: 'Local Math Calculation',
+    },
+    {
+      num: 5,
+      nameTh: 'Finished & Encrypted Traffic',
+      descTh:
+        'การ Handshake สมบูรณ์แบบ! ข้อมูล HTTP ทั้งหมดต่อจากนี้ (รหัสผ่าน, คุกกี้, บัตรเครดิต) จะถูกเข้ารหัสด้วย AES-256-GCM บุคคลภายนอกไม่สามารถถอดรหัสได้',
+      badge: 'Secure Channel Established',
+    },
+  ];
+
+  const currentHandshake =
+    handshakeSteps[handshakeStep - 1] ?? handshakeSteps[0]!;
+
+  const handleCopyCli = (text: string) => {
+    navigator.clipboard?.writeText(text);
+    setCopiedCli(true);
+    setTimeout(() => setCopiedCli(false), 2000);
+  };
+
+  return (
+    <div className="interactive-lab-container" data-testid="https-certificate-lab">
+      <div className="lab-header">
+        <div className="lab-badge">🔒 HTTPS & Security Lab</div>
+        <h4 className="lab-title">
+          ห้องทดลอง HTTPS, TLS 1.3 Handshake & ห่วงโซ่ใบรับรอง (PKI Simulator)
+        </h4>
+        <p className="lab-desc">
+          สำรวจกลไกความปลอดภัยระดับลึก: สังเกตการดักจับแพ็กเก็ตเปรียบเทียบระหว่าง HTTP vs HTTPS,
+          จำลองการตรวจสอบสายสัมพันธ์ของใบรับรอง (Root CA ➔ Intermediate ➔ Leaf) บน Address Bar
+          และทดลองรันคำสั่ง OpenSSL / Certbot
+        </p>
+      </div>
+
+      {/* Sub-tab Navigation */}
+      <div className="lab-controls-bar">
+        <button
+          type="button"
+          className={`lab-btn ${activeTab === 'handshake' ? 'primary' : ''}`}
+          onClick={() => setActiveTab('handshake')}
+        >
+          🤝 1. TLS 1.3 Handshake & ดักจับแพ็กเก็ต
+        </button>
+        <button
+          type="button"
+          className={`lab-btn ${activeTab === 'pki-chain' ? 'primary' : ''}`}
+          onClick={() => setActiveTab('pki-chain')}
+        >
+          🏛️ 2. ห่วงโซ่ความเชื่อถือ (Chain of Trust) & Browser Lock
+        </button>
+        <button
+          type="button"
+          className={`lab-btn ${activeTab === 'cli-generator' ? 'primary' : ''}`}
+          onClick={() => setActiveTab('cli-generator')}
+        >
+          ⌨️ 3. เครื่องมือคำสั่ง OpenSSL & Certbot
+        </button>
+      </div>
+
+      {/* -------------------------------------------------------- */}
+      {/* Tab 1: Handshake & Packet Sniffer Simulation            */}
+      {/* -------------------------------------------------------- */}
+      {activeTab === 'handshake' && (
+        <div className="https-tab-content">
+          <div className="https-controls-row">
+            <div className="https-control-group">
+              <span className="control-label">โปรโตคอลที่ทดสอบ:</span>
+              <div className="btn-toggle-group">
+                <button
+                  type="button"
+                  className={`lab-btn ${protocol === 'http' ? 'warning' : ''}`}
+                  onClick={() => setProtocol('http')}
+                >
+                  ⚠️ HTTP (พอร์ต 80 ธรรมดา)
+                </button>
+                <button
+                  type="button"
+                  className={`lab-btn ${protocol === 'https' ? 'primary' : ''}`}
+                  onClick={() => setProtocol('https')}
+                >
+                  🔒 HTTPS (พอร์ต 443 + TLS 1.3)
+                </button>
+              </div>
+            </div>
+
+            {protocol === 'https' && (
+              <div className="https-control-group">
+                <span className="control-label">ขั้นตอน Handshake:</span>
+                <div className="btn-toggle-group">
+                  <button
+                    type="button"
+                    className="lab-btn"
+                    disabled={handshakeStep === 1}
+                    onClick={() => setHandshakeStep((prev) => Math.max(1, prev - 1))}
+                  >
+                    ← ก่อนหน้า
+                  </button>
+                  <button
+                    type="button"
+                    className="lab-btn primary"
+                    disabled={handshakeStep === 5}
+                    onClick={() => setHandshakeStep((prev) => Math.min(5, prev + 1))}
+                  >
+                    ก้าวต่อไป (Step {handshakeStep}/5) →
+                  </button>
+                  <button
+                    type="button"
+                    className="lab-btn"
+                    onClick={() => setHandshakeStep(1)}
+                  >
+                    รีเซ็ต ↺
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Stepper Display */}
+          {protocol === 'https' && (
+            <div className="handshake-stepper">
+              {handshakeSteps.map((step) => {
+                const isCurrent = step.num === handshakeStep;
+                const isPassed = step.num < handshakeStep;
+                return (
+                  <div
+                    key={step.num}
+                    className={`handshake-step-card ${isCurrent ? 'active' : ''} ${isPassed ? 'passed' : ''}`}
+                    onClick={() => setHandshakeStep(step.num)}
+                  >
+                    <span className="step-idx">{step.num}</span>
+                    <strong className="step-name">{step.nameTh}</strong>
+                    <span className="step-badge">{step.badge}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {protocol === 'https' && (
+            <div className="handshake-current-detail">
+              <div className="detail-tag">{currentHandshake.badge}</div>
+              <h4>
+                ขั้นตอนที่ {currentHandshake.num}: {currentHandshake.nameTh}
+              </h4>
+              <p>{currentHandshake.descTh}</p>
+            </div>
+          )}
+
+          {/* 3-Actor Data Flow & Hacker Sniffer View */}
+          <div className="https-actors-grid">
+            <div className="actor-box client-box">
+              <div className="actor-header">💻 เบราว์เซอร์ (Client)</div>
+              <div className="actor-content">
+                <p>
+                  <strong>โดเมนเป้าหมาย:</strong> example.com
+                </p>
+                <p>
+                  <strong>คำขอ HTTP:</strong> POST /api/login
+                </p>
+                <div className="actor-secret-badge">
+                  {protocol === 'https' && handshakeStep >= 4
+                    ? '🔑 คำนวณ Session Key สำเร็จ'
+                    : protocol === 'https'
+                      ? '⏳ กำลังเจรจา Handshake'
+                      : '🔓 ส่งข้อมูลแบบ Plaintext'}
+                </div>
+              </div>
+            </div>
+
+            <div className="actor-box sniffer-box">
+              <div className="sniffer-header">
+                🕵️ บุคคลกลางทาง / แฮกเกอร์ (Packet Sniffer on Public Wi-Fi)
+              </div>
+              <div className="sniffer-content">
+                {protocol === 'http' ? (
+                  <div className="sniffer-alert alert-danger">
+                    <div className="alert-badge">🚨 ข้อความเปิดเผย (Plaintext Leaked!)</div>
+                    <pre className="packet-dump">
+{`POST /api/login HTTP/1.1
+Host: example.com
+User-Agent: Mozilla/5.0
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "supersecretpassword123",
+  "credit_card": "4111-2222-3333-4444"
+}`}
+                    </pre>
+                    <p className="danger-text">
+                      ⚠️ <strong>อันตรายร้ายแรง:</strong> บุคคลในเครือข่าย Wi-Fi เดียวกันหรือ ISP
+                      สามารถดักจับและอ่านรหัสผ่านและบัตรเครดิตได้ตรง ๆ 100%!
+                    </p>
+                  </div>
+                ) : handshakeStep < 5 ? (
+                  <div className="sniffer-alert alert-info">
+                    <div className="alert-badge">ℹ️ แพ็กเกจเจรจา TLS Handshake</div>
+                    <pre className="packet-dump">
+{`ClientHello:
+  TLS Version: 1.3
+  SNI ServerName: example.com
+  KeyShare: x25519 (Client Public Key)
+  CipherSuites: TLS_AES_256_GCM_SHA384
+
+ServerHello:
+  KeyShare: x25519 (Server Public Key)
+  SelectedCipher: TLS_AES_256_GCM_SHA384
+  EncryptedExtensions: [...]`}
+                    </pre>
+                    <p className="info-text">
+                      👀 แฮกเกอร์เห็นเพียงชื่อโดเมน (SNI) และกุญแจ Public Key Share
+                      แต่ไม่สามารถถอดหากุญแจลับร่วม (Shared Secret) ได้เลย
+                    </p>
+                  </div>
+                ) : (
+                  <div className="sniffer-alert alert-success">
+                    <div className="alert-badge">🔒 ข้อมูลถูกเข้ารหัสสมบูรณ์ (AES-256-GCM)</div>
+                    <pre className="packet-dump">
+{`TLS 1.3 Record Layer [Application Data]:
+Length: 128 bytes
+Payload (Encrypted Ciphertext):
+9e a1 4f 8b 21 c7 34 f0 8a dd 12 9c 5e b3 78 fa
+18 c0 39 ff 71 a2 e4 50 bb 6d 81 29 0e 4a c8 9d
+31 f6 02 a9 e3 b4 c1 77 88 da 52 14 f7 99 2b 88
+
+AEAD Auth Tag (Integrity):
+8e f4 1b 3a d5 c2 77 90 (HMAC Validated)`}
+                    </pre>
+                    <p className="success-text">
+                      🛡️ <strong>ปลอดภัยสูงสุด:</strong> ข้อมูลถูกเข้ารหัสด้วย AES-256
+                      แฮกเกอร์ต้องใช้เวลาคำนวณนับพันล้านปีเพื่อเจาะรหัสข้อมูลก้อนนี้!
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="actor-box server-box">
+              <div className="actor-header">🖥️ เว็บเซิร์ฟเวอร์ (Nginx :443)</div>
+              <div className="actor-content">
+                <p>
+                  <strong>ใบรับรอง:</strong> ISRG ➔ R3 ➔ example.com
+                </p>
+                <p>
+                  <strong>การเข้ารหัส:</strong> TLS 1.3 / AES-256-GCM
+                </p>
+                <div className="actor-secret-badge">
+                  {protocol === 'https' && handshakeStep === 5
+                    ? '✅ ถอดรหัสคำขอสำเร็จ ส่งต่อแอป'
+                    : protocol === 'https'
+                      ? '🔑 มีกุญแจ Private Key (privkey.pem)'
+                      : '⚠️ พอร์ต 80 ไม่ปลอดภัย'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* -------------------------------------------------------- */}
+      {/* Tab 2: PKI Chain of Trust & Address Bar Simulator       */}
+      {/* -------------------------------------------------------- */}
+      {activeTab === 'pki-chain' && (
+        <div className="https-tab-content">
+          <div className="https-controls-row">
+            <span className="control-label">จำลองสถานะใบรับรอง:</span>
+            <div className="btn-toggle-group">
+              <button
+                type="button"
+                className={`lab-btn ${pkiScenario === 'valid' ? 'primary' : ''}`}
+                onClick={() => setPkiScenario('valid')}
+              >
+                ✅ ใบรับรองถูกต้องสมบูรณ์ (Let's Encrypt)
+              </button>
+              <button
+                type="button"
+                className={`lab-btn ${pkiScenario === 'expired' ? 'warning' : ''}`}
+                onClick={() => setPkiScenario('expired')}
+              >
+                ⏰ ใบรับรองหมดอายุ (Expired)
+              </button>
+              <button
+                type="button"
+                className={`lab-btn ${pkiScenario === 'self-signed' ? 'warning' : ''}`}
+                onClick={() => setPkiScenario('self-signed')}
+              >
+                ❓ ใบรับรองเซ็นเอง (Self-Signed)
+              </button>
+              <button
+                type="button"
+                className={`lab-btn ${pkiScenario === 'mismatched-domain' ? 'warning' : ''}`}
+                onClick={() => setPkiScenario('mismatched-domain')}
+              >
+                ❌ โดเมนไม่ตรง (Mismatched SAN)
+              </button>
+            </div>
+          </div>
+
+          {/* Browser Mockup */}
+          <div className="browser-mockup">
+            <div className="browser-chrome-header">
+              <div className="browser-dots">
+                <span className="dot dot-red" />
+                <span className="dot dot-yellow" />
+                <span className="dot dot-green" />
+              </div>
+              <div className={`browser-address-bar ${pkiScenario === 'valid' ? 'secure' : 'insecure'}`}>
+                <span className="lock-icon">
+                  {pkiScenario === 'valid' ? '🔒' : '⚠️'}
+                </span>
+                <span className="address-scheme">
+                  {pkiScenario === 'valid' ? 'https://' : 'https://'}
+                </span>
+                <span className="address-domain">example.com</span>
+                <span className="address-path">/checkout</span>
+                <span className="security-status-badge">
+                  {pkiScenario === 'valid'
+                    ? 'ปลอดภัย (Secure Connection)'
+                    : 'ไม่ปลอดภัย (Not Secure)'}
+                </span>
+              </div>
+            </div>
+
+            <div className="browser-viewport">
+              {pkiScenario === 'valid' ? (
+                <div className="browser-page-secure">
+                  <div className="secure-modal-popup">
+                    <div className="modal-title">
+                      <span className="icon">🔒</span> การเชื่อมต่อปลอดภัย
+                    </div>
+                    <p className="modal-body">
+                      ข้อมูลที่คุณส่งไปยังไซต์นี้ เช่น รหัสผ่าน หรือข้อมูลบัตรเครดิต
+                      จะเป็นส่วนตัวเมื่อส่งมายังไซต์นี้
+                    </p>
+                    <div className="cert-info-box">
+                      <div>
+                        <strong>ใบรับรอง:</strong> ถูกต้อง (Valid)
+                      </div>
+                      <div>
+                        <strong>ออกให้แก่:</strong> example.com (*.example.com)
+                      </div>
+                      <div>
+                        <strong>ออกโดย:</strong> R3 (Let's Encrypt Authority)
+                      </div>
+                      <div>
+                        <strong>วันหมดอายุ:</strong> เหลืออีก 85 วัน (ต่ออายุอัตโนมัติ)
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="browser-page-warning">
+                  <div className="warning-splash">
+                    <div className="warning-triangle">⚠️</div>
+                    <h3>การเชื่อมต่อของคุณไม่เป็นส่วนตัว</h3>
+                    <p className="error-code">
+                      {pkiScenario === 'expired'
+                        ? 'NET::ERR_CERT_DATE_INVALID'
+                        : pkiScenario === 'self-signed'
+                          ? 'NET::ERR_CERT_AUTHORITY_INVALID'
+                          : 'NET::ERR_CERT_COMMON_NAME_INVALID'}
+                    </p>
+                    <p className="error-explanation">
+                      {pkiScenario === 'expired'
+                        ? 'ผู้โจมตีอาจพยายามขโมยข้อมูลของคุณจาก example.com ใบรับรองความปลอดภัยของไซต์นี้หมดอายุแล้ว'
+                        : pkiScenario === 'self-signed'
+                          ? 'เบราว์เซอร์ไม่รู้จักหน่วยงานผู้ออกใบรับรองนี้ (Untrusted Issuer) ใบรับรองนี้อาจถูกสร้างขึ้นมาเองโดยไม่ได้ผ่านการรับรองจาก Root CA'
+                          : 'ใบรับรองความปลอดภัยของเซิร์ฟเวอร์นี้ออกให้แก่ badguy.com ไม่ตรงกับชื่อโดเมน example.com ที่คุณเข้าใช้งาน'}
+                    </p>
+                    <div className="warning-buttons">
+                      <button type="button" className="btn-back-safety">
+                        กลับสู่ความปลอดภัย (แนะนำ)
+                      </button>
+                      <button type="button" className="btn-advanced">
+                        ขั้นสูง (เสี่ยงอันตราย)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* PKI Hierarchy Visual Tree */}
+          <div className="pki-tree-container">
+            <h4>ลำดับชั้นห่วงโซ่ใบรับรองดิจิทัล (Chain of Trust Hierarchy)</h4>
+            <div className="pki-cards-chain">
+              <div className="pki-card root-ca">
+                <div className="card-rank">ชั้นที่ 1: Root CA (ต้นทางความเชื่อถือ)</div>
+                <h5 className="ca-name">🏛️ ISRG Root X1 / DigiCert Global Root</h5>
+                <p className="ca-desc">
+                  ติดตั้งล่วงหน้าใน OS / เบราว์เซอร์ (Mozilla NSS Trust Store) ถือกุญแจลับสูงสุด
+                </p>
+                <div className="pki-badge success">✔ เชื่อถือล่วงหน้าในระบบปฏิบัติการ</div>
+              </div>
+
+              <div className="pki-connector">
+                <span className="arrow">⬇ เซ็นรับรองด้วย Private Key</span>
+              </div>
+
+              <div className="pki-card intermediate-ca">
+                <div className="card-rank">ชั้นที่ 2: Intermediate CA (ตัวแทนผู้ออก)</div>
+                <h5 className="ca-name">🏢 Let's Encrypt R3 / E1</h5>
+                <p className="ca-desc">
+                  ทำหน้าที่ออกใบรับรองให้แก่โดเมนทั่วไป เพื่อป้องกันไม่ให้ Root CA ตัวจริงต้องต่อเน็ต
+                </p>
+                <div className="pki-badge success">✔ ตรวจสอบลายเซ็นกับ Root CA ผ่าน</div>
+              </div>
+
+              <div className="pki-connector">
+                <span className="arrow">⬇ เซ็นรับรองด้วย Private Key</span>
+              </div>
+
+              <div className={`pki-card leaf-cert ${pkiScenario === 'valid' ? 'valid' : 'invalid'}`}>
+                <div className="card-rank">ชั้นที่ 3: Leaf Certificate (ใบรับรองเว็บเรา)</div>
+                <h5 className="ca-name">📜 example.com (Server Certificate)</h5>
+                <p className="ca-desc">
+                  ติดตั้งบนเซิร์ฟเวอร์ Nginx คู่กับไฟล์ privkey.pem
+                </p>
+                <div className={`pki-badge ${pkiScenario === 'valid' ? 'success' : 'danger'}`}>
+                  {pkiScenario === 'valid'
+                    ? '✔ ลายเซ็นดิจิทัลถูกต้องและยังไม่หมดอายุ'
+                    : pkiScenario === 'expired'
+                      ? '✖ หมดอายุการใช้งาน (Date Invalid)'
+                      : pkiScenario === 'self-signed'
+                        ? '✖ ไม่มี Root CA รับรอง (Authority Invalid)'
+                        : '✖ โดเมนไม่ตรงกับ Subject Alternative Name'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* -------------------------------------------------------- */}
+      {/* Tab 3: OpenSSL & Certbot Playground                      */}
+      {/* -------------------------------------------------------- */}
+      {activeTab === 'cli-generator' && (
+        <div className="https-tab-content">
+          <div className="cli-presets-bar">
+            <button
+              type="button"
+              className={`lab-btn ${cliPreset === 1 ? 'primary' : ''}`}
+              onClick={() => setCliPreset(1)}
+            >
+              1. ตรวจสอบใบรับรองบนเซิร์ฟเวอร์จริง (OpenSSL)
+            </button>
+            <button
+              type="button"
+              className={`lab-btn ${cliPreset === 2 ? 'primary' : ''}`}
+              onClick={() => setCliPreset(2)}
+            >
+              2. สร้าง Private Key & CSR สำหรับขอ Cert
+            </button>
+            <button
+              type="button"
+              className={`lab-btn ${cliPreset === 3 ? 'primary' : ''}`}
+              onClick={() => setCliPreset(3)}
+            >
+              3. ขอใบรับรองฟรีอัตโนมัติด้วย Certbot
+            </button>
+            <button
+              type="button"
+              className={`lab-btn ${cliPreset === 4 ? 'primary' : ''}`}
+              onClick={() => setCliPreset(4)}
+            >
+              4. บล็อกคอนฟิก Nginx ปลอดภัยระดับ A+
+            </button>
+          </div>
+
+          {cliPreset === 1 && (
+            <div className="cli-detail-panel">
+              <div className="cli-box-header">
+                <h5>คำสั่งตรวจสอบห่วงโซ่ใบรับรองและวันหมดอายุของเซิร์ฟเวอร์</h5>
+                <button
+                  type="button"
+                  className="copy-btn"
+                  onClick={() =>
+                    handleCopyCli(
+                      'openssl s_client -connect example.com:443 -servername example.com </dev/null 2>/dev/null | openssl x509 -noout -dates -issuer -subject',
+                    )
+                  }
+                >
+                  {copiedCli ? '✔ คัดลอกแล้ว' : '📋 คัดลอกคำสั่ง'}
+                </button>
+              </div>
+              <pre className="cli-command-box">
+openssl s_client -connect example.com:443 -servername example.com &lt;/dev/null 2&gt;/dev/null | openssl x509 -noout -dates -issuer -subject
+              </pre>
+              <div className="cli-flags-explanation">
+                <strong>คำอธิบายแฟล็ก:</strong>
+                <ul>
+                  <li>
+                    <code>-connect example.com:443</code> : ต่อไปยังพอร์ต SSL/TLS ของเซิร์ฟเวอร์
+                  </li>
+                  <li>
+                    <code>-servername example.com</code> : ส่งค่า SNI เพื่อให้เซิร์ฟเวอร์ส่งใบรับรองที่ถูกต้อง
+                  </li>
+                  <li>
+                    <code>openssl x509 -noout -dates -issuer</code> : ถอดรหัสไฟล์ X.509
+                    และอ่านวันหมดอายุและผู้ออกใบรับรอง
+                  </li>
+                </ul>
+              </div>
+              <div className="cli-terminal-output">
+                <span className="term-title">💻 ผลลัพธ์ตัวอย่างในเทอร์มินัล:</span>
+                <pre>
+{`notBefore=Oct 15 00:00:00 2026 GMT
+notAfter=Jan 13 23:59:59 2027 GMT
+issuer=C=US, O=Let's Encrypt, CN=R3
+subject=CN=example.com`}
+                </pre>
+              </div>
+            </div>
+          )}
+
+          {cliPreset === 2 && (
+            <div className="cli-detail-panel">
+              <div className="cli-box-header">
+                <h5>คำสั่งสร้างกุญแจลับ (Private Key 2048 บิต) และใบขอรับรอง (CSR)</h5>
+                <button
+                  type="button"
+                  className="copy-btn"
+                  onClick={() =>
+                    handleCopyCli(
+                      'openssl req -new -newkey rsa:2048 -nodes -keyout server.key -out server.csr -subj "/C=TH/ST=Bangkok/L=Bangkok/O=MyCompany/CN=example.com"',
+                    )
+                  }
+                >
+                  {copiedCli ? '✔ คัดลอกแล้ว' : '📋 คัดลอกคำสั่ง'}
+                </button>
+              </div>
+              <pre className="cli-command-box">
+openssl req -new -newkey rsa:2048 -nodes -keyout server.key -out server.csr -subj "/C=TH/ST=Bangkok/L=Bangkok/O=MyCompany/CN=example.com"
+              </pre>
+              <div className="cli-flags-explanation">
+                <strong>คำอธิบายแฟล็ก:</strong>
+                <ul>
+                  <li>
+                    <code>-newkey rsa:2048</code> : สร้างคู่กุญแจใหม่แบบ RSA ขนาด 2048 บิต
+                  </li>
+                  <li>
+                    <code>-nodes</code> : ไม่ต้องใส่รหัสผ่านล็อคไฟล์กุญแจลับ (No DES encryption) เพื่อให้ Nginx สตาร์ทเองได้
+                  </li>
+                  <li>
+                    <code>-keyout server.key</code> : บันทึกกุญแจลับ Private Key (ต้องเก็บเป็นความลับ 0600)
+                  </li>
+                  <li>
+                    <code>-out server.csr</code> : สร้างไฟล์ CSR ส่งให้ CA ทำการเซ็นรับรอง
+                  </li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {cliPreset === 3 && (
+            <div className="cli-detail-panel">
+              <div className="cli-box-header">
+                <h5>คำสั่งขอใบรับรองฟรีอัตโนมัติด้วย Certbot (Let's Encrypt)</h5>
+                <button
+                  type="button"
+                  className="copy-btn"
+                  onClick={() =>
+                    handleCopyCli(
+                      'sudo certbot --nginx -d example.com -d www.example.com --non-interactive --agree-tos -m admin@example.com',
+                    )
+                  }
+                >
+                  {copiedCli ? '✔ คัดลอกแล้ว' : '📋 คัดลอกคำสั่ง'}
+                </button>
+              </div>
+              <pre className="cli-command-box">
+sudo certbot --nginx -d example.com -d www.example.com --non-interactive --agree-tos -m admin@example.com
+              </pre>
+              <div className="cli-flags-explanation">
+                <strong>สิ่งที่ Certbot ทำให้อัตโนมัติ:</strong>
+                <ul>
+                  <li>1. ตรวจสอบไฟล์คอนฟิก Nginx ในเครื่องและค้นหาบล็อก server_name</li>
+                  <li>2. ยิง HTTP-01 Challenge ไปยัง Let's Encrypt เพื่อพิสูจน์ว่าเป็นเจ้าของโดเมน</li>
+                  <li>3. ดาวน์โหลด fullchain.pem และ privkey.pem มาเก็บไว้ที่ /etc/letsencrypt/live/</li>
+                  <li>4. เขียนคอนฟิก SSL ใน nginx.conf และ reload เซิร์ฟเวอร์ให้ทันทีโดยไม่มี Downtime</li>
+                </ul>
+              </div>
+              <div className="cli-terminal-output">
+                <span className="term-title">💻 คำสั่งทดสอบการต่ออายุอัตโนมัติ:</span>
+                <pre>sudo certbot renew --dry-run</pre>
+              </div>
+            </div>
+          )}
+
+          {cliPreset === 4 && (
+            <div className="cli-detail-panel">
+              <div className="cli-box-header">
+                <h5>บล็อกคอนฟิก Nginx ระดับความปลอดภัย A+ (Modern SSL & TLS 1.3)</h5>
+                <button
+                  type="button"
+                  className="copy-btn"
+                  onClick={() =>
+                    handleCopyCli(
+`server {
+  listen 80;
+  server_name example.com www.example.com;
+  return 301 https://$host$request_uri;
+}
+
+server {
+  listen 443 ssl http2;
+  server_name example.com www.example.com;
+
+  ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers off;
+
+  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header X-Frame-Options "DENY" always;
+}`,
+                    )
+                  }
+                >
+                  {copiedCli ? '✔ คัดลอกแล้ว' : '📋 คัดลอกคำสั่ง'}
+                </button>
+              </div>
+              <pre className="cli-command-box">
+{`server {
+  listen 80;
+  server_name example.com www.example.com;
+  return 301 https://$host$request_uri; # บังคับเปลี่ยนเป็น HTTPS
+}
+
+server {
+  listen 443 ssl http2;
+  server_name example.com www.example.com;
+
+  ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+  # อนุญาตเฉพาะ TLS 1.2 และ 1.3
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers off;
+
+  # HSTS บังคับเบราว์เซอร์จำว่าต้องเข้าด้วย HTTPS ตลอด 1 ปี
+  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+}`}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Metrics Row */}
+      <div className="lab-metrics-grid">
+        <div className="lab-metric-card">
+          <span className="metric-label">เวอร์ชันโปรโตคอล TLS</span>
+          <span className="metric-value highlight">TLS 1.3 (1-RTT Fast Handshake)</span>
+        </div>
+        <div className="lab-metric-card">
+          <span className="metric-label">อัลกอริทึมเข้ารหัส (Cipher)</span>
+          <span className="metric-value">AES-256-GCM / SHA-384</span>
+        </div>
+        <div className="lab-metric-card">
+          <span className="metric-label">ความลับไปข้างหน้า (Forward Secrecy)</span>
+          <span className="metric-value success">✔ ECDHE (Curve25519)</span>
+        </div>
+        <div className="lab-metric-card">
+          <span className="metric-label">ผู้ออกใบรับรอง (Issuer)</span>
+          <span className="metric-value">Let's Encrypt R3 (Auto-Renewed)</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+

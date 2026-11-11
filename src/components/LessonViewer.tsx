@@ -32,6 +32,7 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
   const isNpm = topic.id === 'npm-build-deploy';
   const isMcp = topic.id === 'mcp-protocol';
   const isDocker = topic.id === 'docker-sandbox';
+  const isHttps = topic.id === 'https-certificate';
 
   const [activeSection, setActiveSection] =
     useState<LessonSectionId>('overview');
@@ -65,7 +66,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
             ? 'ภาพรวม 3 เสาหลัก MCP'
             : isDocker
               ? '3 เสาหลัก Sandbox ปลอดภัย'
-              : 'ภาพรวม 3 เสาหลัก',
+              : isHttps
+                ? '3 เสาหลักความปลอดภัย HTTPS'
+                : 'ภาพรวม 3 เสาหลัก',
       icon: '🏛️',
     },
     {
@@ -83,7 +86,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
             ? 'สถาปัตยกรรม 4 เลเยอร์ MCP'
             : isDocker
               ? '4 ระดับความปลอดภัย (Docker Layers)'
-              : 'สถาปัตยกรรม 4 เลเยอร์',
+              : isHttps
+                ? '4 เลเยอร์ความปลอดภัย & PKI'
+                : 'สถาปัตยกรรม 4 เลเยอร์',
       icon: '🧩',
     },
     {
@@ -96,7 +101,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
             ? 'ขั้นตอนการเชื่อมต่อ & รัน Tool'
             : isDocker
               ? '5 ขั้นตอน Container Lifecycle'
-              : 'วงจรการทำงาน 5 ขั้น',
+              : isHttps
+                ? 'วงจร TLS 1.3 Handshake 5 ขั้น'
+                : 'วงจรการทำงาน 5 ขั้น',
       icon: '⚡',
     },
     {
@@ -109,7 +116,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
             ? 'แผนภูมิ Context & Resource Tiers'
             : isDocker
               ? 'ระดับการจำกัด Resource & Memory'
-              : 'แผนภูมิบริบท & ความจำ',
+              : isHttps
+                ? 'การจัดเก็บกุญแจ & Trust Store'
+                : 'แผนภูมิบริบท & ความจำ',
       icon: '📊',
     },
     {
@@ -122,7 +131,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
             ? 'จำลองสิทธิ์ความปลอดภัย (MCP Security)'
             : isDocker
               ? 'จำลองโหมด Sandbox (Air-Gapped vs Net)'
-              : 'แบบจำลองสิทธิ์ความปลอดภัย',
+              : isHttps
+                ? 'จำลองโหมดความปลอดภัย TLS & ใบรับรอง'
+                : 'แบบจำลองสิทธิ์ความปลอดภัย',
       icon: '🛡️',
     },
     ...(content.commandGroups && content.commandGroups.length > 0
@@ -137,7 +148,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                   ? 'คลังคำสั่ง MCP Protocol & Tools'
                   : isDocker
                     ? 'คลังคำสั่ง Docker & Security Flags'
-                    : 'คลังคำสั่ง & คีย์ลัด',
+                    : isHttps
+                      ? 'คลังคำสั่ง OpenSSL, Certbot & Nginx'
+                      : 'คลังคำสั่ง & คีย์ลัด',
             icon: '⌨️',
           },
         ]
@@ -216,7 +229,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                       ? '3 เสาหลักมาตรฐาน Model Context Protocol (MCP)'
                       : isDocker
                         ? '3 เสาหลักการสร้าง Sandbox ปลอดภัยสำหรับ AI Agent'
-                        : '3 เสาหลักทางสถาปัตยกรรม (Core Architectural Pillars)'}
+                        : isHttps
+                          ? '3 เสาหลักความปลอดภัย HTTPS (SSL/TLS & PKI Pillars)'
+                          : '3 เสาหลักทางสถาปัตยกรรม (Core Architectural Pillars)'}
               </h3>
               <div className="pillar-grid">
                 {content.pillars.map((pillar) => (
@@ -249,7 +264,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                       ? '4 เลเยอร์การทำงานของ Model Context Protocol (MCP Architecture)'
                       : isDocker
                         ? '4 เลเยอร์ความปลอดภัยระดับ Kernel และ Container (Docker Security)'
-                        : 'แผนผัง 4 เลเยอร์ของระบบ (4-Layer Interactive Architecture)'}
+                        : isHttps
+                          ? '4 เลเยอร์ความปลอดภัยของระบบ HTTPS (From Browser to Nginx)'
+                          : 'แผนผัง 4 เลเยอร์ของระบบ (4-Layer Interactive Architecture)'}
               </h3>
               <div className="layer-selector-bar">
                 {content.layers.map((layer) => {
@@ -292,7 +309,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                             ? 'สเปคโปรโตคอล / โมดูลที่เกี่ยวข้อง'
                             : isDocker
                               ? 'โครงสร้างคอนฟิกและ Kernel Namespaces'
-                              : 'ไฟล์และโมดูลสำคัญในเลเยอร์นี้'}
+                              : isHttps
+                                ? 'ไฟล์ใบรับรอง คอนฟิก และชุดอัลกอริทึม'
+                                : 'ไฟล์และโมดูลสำคัญในเลเยอร์นี้'}
                     </h5>
                     <ul>
                       {activeLayer.files.map((filePath) => (
@@ -307,7 +326,7 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                     <h5>
                       {isReact
                         ? 'แนวคิดหลักที่ต้องเข้าใจ'
-                        : isNpm || isMcp || isDocker
+                        : isNpm || isMcp || isDocker || isHttps
                           ? 'สิ่งสำคัญที่ต้องรู้เกี่ยวกับส่วนนี้'
                           : 'จุดเด่นเชิงสถาปัตยกรรม'}
                     </h5>
@@ -339,7 +358,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                       ? '5 ขั้นตอนการเจรจาโปรโตคอลและการเรียก Tool (MCP Execution Loop)'
                       : isDocker
                         ? '5 ขั้นตอนการทำงานของ Ephemeral Container (Sandbox Lifecycle)'
-                        : 'วงจรการประมวลผล 5 ขั้นตอน (5-Step Execution Loop)'}
+                        : isHttps
+                          ? '5 ขั้นตอนการทำงานของ TLS 1.3 Handshake & ต่ออายุใบรับรอง'
+                          : 'วงจรการประมวลผล 5 ขั้นตอน (5-Step Execution Loop)'}
               </h3>
               <div className="stepper-button-bar">
                 {steps.map((step, idx) => {
@@ -408,7 +429,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                           ? 'แพ็กเกจ JSON-RPC / อ็อบเจกต์ที่เกี่ยวข้อง:'
                           : isDocker
                             ? 'สถานะ Container & Linux Namespaces:'
-                            : 'อาร์ติแฟกต์และโมดูลที่เกี่ยวข้อง:'}
+                            : isHttps
+                              ? 'แพ็กเกจ TLS Handshake & อาร์ติแฟกต์กุญแจ:'
+                              : 'อาร์ติแฟกต์และโมดูลที่เกี่ยวข้อง:'}
                   </h5>
                   <div className="artifact-tags">
                     {activeStep.keyArtifacts.map((artifact) => (
@@ -433,7 +456,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                       ? 'ระดับการบริหารจัดการ Context และ Resource ใน MCP'
                       : isDocker
                         ? 'ระดับการจำกัดทรัพยากรและหน่วยความจำ (Resource & Memory Tiers)'
-                        : 'โครงสร้างบริบทและความจำ (Context & Memory Tiers)'}
+                        : isHttps
+                          ? '4 ระดับการจัดเก็บกุญแจและแคชเซสชัน (Key Storage & Trust Store)'
+                          : 'โครงสร้างบริบทและความจำ (Context & Memory Tiers)'}
               </h3>
               <div className="context-tier-chart">
                 {content.contextTiers.map((tier) => (
@@ -474,7 +499,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                       ? 'แบบจำลองนโยบายความปลอดภัยของ MCP (Security Simulator)'
                       : isDocker
                         ? 'แบบจำลองระดับการกักกันของ Container (Isolation Simulator)'
-                        : 'แบบจำลองการควบคุมสิทธิ์ความปลอดภัย (Permission Simulator)'}
+                        : isHttps
+                          ? 'แบบจำลองโหมดความปลอดภัย TLS และการตรวจสอบใบรับรอง (TLS Security Simulator)'
+                          : 'แบบจำลองการควบคุมสิทธิ์ความปลอดภัย (Permission Simulator)'}
               </h3>
               <div className="permission-mode-bar">
                 {content.permissionProfiles.map((profile) => {
@@ -494,7 +521,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                           ? `โหมด: ${profile.mode === 'Smart' ? 'Granular (Read Auto, Write Confirm)' : profile.mode === 'Manual' ? 'Strict (Ask Always)' : 'Autonomous Sandbox'}`
                           : isDocker
                             ? `โหมด: ${profile.mode === 'Smart' ? 'Filtered Network' : profile.mode === 'Manual' ? 'Air-Gapped (No Net)' : 'Privileged Dev'}`
-                            : `โหมด: ${profile.mode}`}
+                            : isHttps
+                              ? `โหมด: ${profile.mode === 'Smart' ? 'Modern HTTPS (TLS 1.3)' : profile.mode === 'Manual' ? 'Strict mTLS (Mutual Auth)' : 'Local Self-Signed (mkcert)'}`
+                              : `โหมด: ${profile.mode}`}
                     </button>
                   );
                 })}
@@ -509,7 +538,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                         ? `ระดับนโยบายความปลอดภัย: ${activeProfile.mode}`
                         : isDocker
                           ? `ระดับการแยกตัว (Isolation Level): ${activeProfile.mode}`
-                          : `โหมดที่เลือก: ${activeProfile.mode}`}
+                          : isHttps
+                            ? `ระดับความปลอดภัย TLS: ${activeProfile.mode}`
+                            : `โหมดที่เลือก: ${activeProfile.mode}`}
                   </span>
                   <p className="perm-summary-text">{activeProfile.summaryTh}</p>
                 </div>
@@ -525,7 +556,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                             ? 'การอ่านไฟล์และการเข้าถึง Host (Read Access)'
                             : isReact
                               ? 'การอ่านค่า & Props (Read Action)'
-                              : 'การอ่านไฟล์ (Read Action)'}
+                              : isHttps
+                                ? 'การรับรอง & การเจรจารองรับ (Negotiation Policy)'
+                                : 'การอ่านไฟล์ (Read Action)'}
                     </h5>
                     <p>{activeProfile.readActionPolicyTh}</p>
                   </div>
@@ -539,7 +572,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                             ? 'การรันคำสั่งเชลล์และเขียนข้อมูล (Write/Exec Action)'
                             : isReact
                               ? 'การเปลี่ยน State & Re-render (Write Action)'
-                              : 'คำสั่งแก้ไข / เชลล์ (Write Action)'}
+                              : isHttps
+                                ? 'การเข้ารหัส & การต่ออายุอัตโนมัติ (Encryption & Renewal)'
+                                : 'คำสั่งแก้ไข / เชลล์ (Write Action)'}
                     </h5>
                     <p>{activeProfile.writeCommandPolicyTh}</p>
                   </div>
@@ -553,7 +588,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                             ? 'การจำกัดสิทธิ์ Kernel & Network (Blocklist & Quota)'
                             : isReact
                               ? 'ข้อห้าม & Bad Practices (Anti-Patterns)'
-                              : 'การป้องกันอันตราย (Blocklist Policy)'}
+                              : isHttps
+                                ? 'การบล็อกเวอร์ชันเก่า & สิ่งที่ห้ามใช้ (Security Blocklist)'
+                                : 'การป้องกันอันตราย (Blocklist Policy)'}
                     </h5>
                     <p>{activeProfile.blocklistPolicyTh}</p>
                   </div>
@@ -578,7 +615,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                         ? 'คลังคำสั่งและเมธอดมาตรฐาน MCP (MCP Methods & Tools Catalog)'
                         : isDocker
                           ? 'คลังคำสั่ง Docker และแฟล็กความปลอดภัย (Docker CLI & Security Flags)'
-                          : 'คลังคำสั่งและคีย์ลัดทั้งหมด (Command Reference & CLI Catalog)'}
+                          : isHttps
+                            ? 'คลังคำสั่ง OpenSSL, Certbot และการตั้งค่า Nginx (HTTPS & TLS CLI Catalog)'
+                            : 'คลังคำสั่งและคีย์ลัดทั้งหมด (Command Reference & CLI Catalog)'}
                 </h3>
                 <p className="section-subtitle">
                   {isReact
@@ -589,7 +628,9 @@ export function LessonViewer({ topic, onBack }: LessonViewerProps) {
                         ? 'รวมเมธอด JSON-RPC 2.0, คำสั่งกำหนดค่า และเครื่องมือตรวจสอบของ Model Context Protocol'
                         : isDocker
                           ? 'รวมคำสั่ง Docker CLI และ Security Flags ที่จำเป็นสำหรับการสร้าง Container ปลอดภัยสำหรับ AI Agent'
-                          : 'รวมคำสั่ง Slash Commands ที่สามารถพิมพ์สั่งการได้ทั้งในเทอร์มินัล CLI และผ่าน Gateway แชท'}
+                          : isHttps
+                            ? 'รวมคำสั่ง OpenSSL ตรวจสอบกุญแจและใบรับรอง, คำสั่ง Certbot ต่ออายุอัตโนมัติ และบล็อกคอนฟิก Nginx TLS 1.3'
+                            : 'รวมคำสั่ง Slash Commands ที่สามารถพิมพ์สั่งการได้ทั้งในเทอร์มินัล CLI และผ่าน Gateway แชท'}
                 </p>
 
                 <div className="command-groups-container">

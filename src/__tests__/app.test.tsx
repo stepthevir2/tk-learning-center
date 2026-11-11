@@ -458,4 +458,112 @@ describe('TK Learning Center', () => {
     );
     expect(screen.getByText(/คอนเทนเนอร์ชั่วคราวเปิดทำงาน/i)).toBeInTheDocument();
   });
+
+  it('opens and interacts with the HTTPS & Certificate lesson and its interactive lab', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    // Filter to System Architecture or click directly
+    await user.click(screen.getByRole('button', { name: /System Architecture/i }));
+
+    const launchBtn = screen.getByRole('button', {
+      name: /เข้าสู่บทเรียน HTTPS & Certificate/i,
+    });
+    expect(launchBtn).toBeInTheDocument();
+    await user.click(launchBtn);
+
+    // Verify headline and pillars
+    expect(
+      screen.getByRole('heading', {
+        name: /HTTPS & SSL\/TLS Certificate ทำงานอย่างไร/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Hybrid Encryption/i)).toBeInTheDocument();
+
+    const sidebar = screen.getByLabelText(/สารบัญบทเรียน/i);
+
+    // Switch to workflow section via sidebar
+    await user.click(
+      within(sidebar).getByRole('button', {
+        name: /วงจร TLS 1\.3 Handshake 5 ขั้น/i,
+      }),
+    );
+    expect(screen.getByText(/Client Hello & Server Hello/i)).toBeInTheDocument();
+
+    // Switch to commands section via sidebar
+    await user.click(
+      within(sidebar).getByRole('button', {
+        name: /คลังคำสั่ง OpenSSL, Certbot & Nginx/i,
+      }),
+    );
+    expect(
+      screen.getAllByText('openssl genrsa -out server.key 2048').length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText('certbot --nginx -d example.com -d www.example.com').length,
+    ).toBeGreaterThanOrEqual(1);
+
+    // Switch to Interactive Lab via sidebar
+    await user.click(
+      within(sidebar).getByRole('button', {
+        name: /ห้องทดลอง Interactive Lab/i,
+      }),
+    );
+
+    const lab = screen.getByTestId('https-certificate-lab');
+    expect(lab).toBeInTheDocument();
+
+    // Tab 1: Test packet sniffer with HTTP vs HTTPS
+    await user.click(screen.getByRole('button', { name: /HTTP \(พอร์ต 80 ธรรมดา\)/i }));
+    expect(screen.getByText(/Plaintext Leaked/i)).toBeInTheDocument();
+    expect(screen.getByText(/supersecretpassword123/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /HTTPS \(พอร์ต 443 \+ TLS 1\.3\)/i }));
+    expect(screen.getByText(/แพ็กเกจเจรจา TLS Handshake/i)).toBeInTheDocument();
+
+    // Step through handshake to step 5
+    await user.click(screen.getByRole('button', { name: /ก้าวต่อไป/i }));
+    await user.click(screen.getByRole('button', { name: /ก้าวต่อไป/i }));
+    await user.click(screen.getByRole('button', { name: /ก้าวต่อไป/i }));
+    await user.click(screen.getByRole('button', { name: /ก้าวต่อไป/i }));
+    expect(screen.getByText(/ข้อมูลถูกเข้ารหัสสมบูรณ์/i)).toBeInTheDocument();
+
+    // Tab 2: Test PKI Chain of Trust and Browser Mockup
+    await user.click(
+      screen.getByRole('button', {
+        name: /2\. ห่วงโซ่ความเชื่อถือ \(Chain of Trust\) & Browser Lock/i,
+      }),
+    );
+    expect(screen.getByText(/ISRG Root X1/i)).toBeInTheDocument();
+    expect(screen.getByText(/ปลอดภัย \(Secure Connection\)/i)).toBeInTheDocument();
+
+    // Simulate Expired Certificate
+    await user.click(screen.getByRole('button', { name: /ใบรับรองหมดอายุ \(Expired\)/i }));
+    expect(screen.getByText('NET::ERR_CERT_DATE_INVALID')).toBeInTheDocument();
+    expect(screen.getByText(/ไม่ปลอดภัย \(Not Secure\)/i)).toBeInTheDocument();
+
+    // Tab 3: OpenSSL & Certbot Command Generator
+    await user.click(
+      screen.getByRole('button', {
+        name: /3\. เครื่องมือคำสั่ง OpenSSL & Certbot/i,
+      }),
+    );
+    expect(
+      screen.getByRole('button', {
+        name: /3\. ขอใบรับรองฟรีอัตโนมัติด้วย Certbot/i,
+      }),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole('button', {
+        name: /3\. ขอใบรับรองฟรีอัตโนมัติด้วย Certbot/i,
+      }),
+    );
+    expect(screen.getByText(/sudo certbot renew --dry-run/i)).toBeInTheDocument();
+
+    // Back to hub
+    await user.click(screen.getByRole('button', { name: /กลับหน้าหมวดหมู่/i }));
+    expect(
+      screen.getByRole('heading', { name: /หมวดหมู่ความรู้ทั้งหมด/i }),
+    ).toBeInTheDocument();
+  });
 });

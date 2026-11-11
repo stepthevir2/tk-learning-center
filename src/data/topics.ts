@@ -1691,4 +1691,359 @@ export const TOPICS = [
       ],
     },
   },
+  {
+    status: 'ready',
+    id: createTopicId('https-certificate'),
+    categoryId: 'system-arch',
+    categoryLabel: 'System Architecture',
+    title: 'HTTPS & Certificate (SSL/TLS, การเข้ารหัส & ห่วงโซ่ความเชื่อถือ)',
+    summaryTh:
+      'เจาะลึกระบบความปลอดภัยของเว็บ: การทำงานระหว่าง HTTP vs HTTPS, วงจร TLS 1.3 Handshake, การเข้ารหัสลูกผสม (Asymmetric & Symmetric Encryption), ห่วงโซ่ความเชื่อถือ (Root CA -> Intermediate CA -> Leaf Certificate), การขอใบรับรองฟรีอัตโนมัติด้วย Let\'s Encrypt (Certbot / ACME) และการตั้งค่า Nginx ให้ได้เกรด A+',
+    flowPreview: [
+      'TLS 1.3 Handshake & Key Exchange',
+      'PKI Chain of Trust (Root -> Leaf)',
+      'Symmetric AES-GCM Encrypted Stream',
+    ],
+    content: {
+      headlineTh:
+        'HTTPS & SSL/TLS Certificate ทำงานอย่างไร? (เข้าใจความปลอดภัยของเว็บด้วยภาพ)',
+      introTh:
+        'เมื่อเราเข้าเว็บไซต์ที่มีไอคอนรูปแม่กุญแจเขียว (HTTPS) ข้อมูลทุกตัวอักษรระหว่างเบราว์เซอร์กับเซิร์ฟเวอร์จะถูกเข้ารหัส ป้องกันการถูกดักจับรหัสผ่านหรือข้อมูลบัตรเครดิต (Sniffing) และป้องกันการแก้ไขข้อมูลกลางทาง (Tampering) บทเรียนนี้สรุปกลไกเบื้องหลังของ TLS 1.3, การจับคู่กุญแจ Asymmetric/Symmetric, โครงสร้างห่วงโซ่ใบรับรอง (PKI Chain of Trust), และวิธีขอใบรับรองจริงด้วย Let\'s Encrypt แบบเข้าใจง่ายและนำไปใช้ได้ทันที',
+      pillars: [
+        {
+          titleTh: '1. Hybrid Encryption (การเข้ารหัสแบบผสมผสาน)',
+          descriptionTh:
+            'ผสานข้อดีของ 2 โลก: ใช้ Asymmetric Encryption (ECDHE/RSA) ในช่วงเริ่มต้นเพื่อแลกเปลี่ยนกุญแจลับอย่างปลอดภัยข้ามเครือข่ายอินเทอร์เน็ต จากนั้นสลับมาใช้ Symmetric Encryption (AES-256-GCM / ChaCha20) สำหรับรับส่งข้อมูลจริง เพราะทำงานเร็วกว่าหลายร้อยเท่าและประหยัดพลังงานซีพียู',
+        },
+        {
+          titleTh: '2. PKI & Chain of Trust (ห่วงโซ่ความเชื่อถือของใบรับรอง)',
+          descriptionTh:
+            'ระบบไม่เพียงแค่เข้ารหัส แต่ต้องพิสูจน์ได้ว่า "กำลังคุยกับเซิร์ฟเวอร์ตัวจริง ไม่ใช่โจร": เบราว์เซอร์มี Root CA ที่เชื่อถือได้ฝังอยู่ในระบบล่วงหน้า จากนั้นตรวจสอบลายเซ็นดิจิทัลของ Intermediate CA ลงมาจนถึง Leaf Certificate ของโดเมนเรา หากลายเซ็นถูกต้องและไม่หมดอายุ เบราว์เซอร์จึงจะแสดงรูปแม่กุญแจสีเขียว',
+        },
+        {
+          titleTh:
+            '3. Automated ACME & Forward Secrecy (Let\'s Encrypt & ความลับตลอดไป)',
+          descriptionTh:
+            'ยุคใหม่ใช้โปรโตคอล ACME (Certbot) ขอและต่ออายุใบรับรองทุก 90 วันอัตโนมัติโดยไม่มีค่าใช้จ่าย พร้อมฟีเจอร์ Perfect Forward Secrecy (PFS) ด้วย Diffie-Hellman ที่รับประกันว่า แม้วันข้างหน้ากุญแจ Private Key ของเซิร์ฟเวอร์จะรั่วไหล ผู้ไม่หวังดีก็ไม่สามารถนำไปถอดรหัสข้อมูลในอดีตที่เคยดักฟังเก็บไว้ได้',
+        },
+      ],
+      layers: [
+        {
+          id: 'entry-routing',
+          codeLabel: 'LAYER 01 • BROWSER & CLIENT GATEKEEPER',
+          titleTh: '1. หน้าต่างเบราว์เซอร์ & ฐานข้อมูล Trust Store',
+          subtitleTh:
+            'Address Bar Padlock, OS Root CA Store, Certificate Validation Engine',
+          files: [
+            'Browser Trust Store (Mozilla NSS)',
+            '/etc/ssl/certs/ca-certificates.crt',
+            'Windows / macOS System Keychain',
+          ],
+          highlightsTh: [
+            '<strong>System Trust Store:</strong> เบราว์เซอร์และระบบปฏิบัติการจะติดตั้งรายชื่อ Root Certificate Authorities (เช่น ISRG, DigiCert, Sectigo) มาให้ล่วงหน้า เพื่อใช้เป็นจุดเริ่มต้นของความเชื่อถือ (Trust Anchor)',
+            '<strong>Domain Match & Expiration Check:</strong> เบราว์เซอร์ตรวจสอบว่า Subject Alternative Name (SAN) ในใบรับรองตรงกับโดเมนที่พิมพ์ใน URL หรือไม่ และตรวจวันหมดอายุ (Not After)',
+            '<strong>Security Warning Trigger:</strong> หากใบรับรองหมดอายุ ลายเซ็นไม่ตรง หรือไม่มี Root CA รองรับ เบราว์เซอร์จะบล็อกการเข้าถึงทันทีและแสดงหน้าจอเตือน "Your connection is not private (NET::ERR_CERT_AUTHORITY_INVALID)"',
+          ],
+        },
+        {
+          id: 'core-loop',
+          codeLabel: 'LAYER 02 • TLS 1.3 CRYPTOGRAPHIC ENGINE',
+          titleTh: '2. เอนจินการเข้ารหัส & ชุดอัลกอริทึม (Cipher Suites)',
+          subtitleTh:
+            'ECDHE (Key Exchange), AES-256-GCM / ChaCha20-Poly1305, SHA-256 / SHA-384',
+          files: [
+            'TLS_AES_256_GCM_SHA384',
+            'TLS_CHACHA20_POLY1305_SHA256',
+            'curve25519 / secp256r1',
+            'HKDF (HMAC-based Key Derivation)',
+          ],
+          highlightsTh: [
+            '<strong>TLS 1.3 Streamlined Handshake:</strong> ลดระยะเวลาการเริ่มเชื่อมต่อเหลือเพียง 1-RTT (One Round Trip Time) จากเดิมใน TLS 1.2 ที่ต้องใช้ 2-RTT ทำให้เปิดเว็บเร็วขึ้นอย่างเห็นได้ชัด',
+            '<strong>ECDHE Key Agreement:</strong> ไคลเอนต์และเซิร์ฟเวอร์ส่งค่า Public Key Share ของตนเอง แล้วนำมาคำนวณทางคณิตศาสตร์ได้ผลลัพธ์ Shared Secret เดียวกัน โดยไม่ต้องส่งกุญแจลับจริงผ่านสายสัญญาณ',
+            '<strong>Authenticated Encryption (AEAD):</strong> ใช้อัลกอริทึม AES-GCM หรือ ChaCha20-Poly1305 ที่เข้ารหัสข้อมูล (Confidentiality) พร้อมประทับตรา Auth Tag ป้องกันการดัดแปลงข้อมูล (Integrity) ไปพร้อมกันในรอบเดียว',
+          ],
+        },
+        {
+          id: 'tools-sandboxes',
+          codeLabel: 'LAYER 03 • PUBLIC KEY INFRASTRUCTURE (PKI)',
+          titleTh: '3. โครงสร้างห่วงโซ่ใบรับรองดิจิทัล (Chain of Trust & ACME)',
+          subtitleTh:
+            'Root CA, Intermediate CA, Leaf Certificate, OCSP Stapling & CRL',
+          files: [
+            'ISRG Root X1 (Root CA)',
+            'R3 / E1 (Let\'s Encrypt Intermediate CA)',
+            'fullchain.pem (Server + Intermediate)',
+            'privkey.pem (Secret Private Key)',
+          ],
+          highlightsTh: [
+            '<strong>Chain of Trust (ลำดับขั้นความเชื่อถือ):</strong> Root CA ใช้กุญแจลับเซ็นรับรอง Intermediate CA และ Intermediate CA ใช้กุญแจลับเซ็นรับรอง Leaf Certificate ของเว็บไซต์เรา ทำให้เบราว์เซอร์สามารถไล่สายตรวจสอบกลับขึ้นไปได้',
+            '<strong>Private Key vs Public Certificate:</strong> ใบรับรอง (Certificate/fullchain.pem) เป็นข้อมูลสาธารณะที่แจกจ่ายให้ใครก็ได้ แต่ Private Key (privkey.pem) ต้องเก็บเป็นความลับสูงสุดบนเซิร์ฟเวอร์ ห้ามเปิดเผยเด็ดขาด',
+            '<strong>Automated ACME Protocol:</strong> Let\'s Encrypt ใช้มาตรฐาน ACME ตรวจสอบความเป็นเจ้าของโดเมนผ่าน HTTP-01 (.well-known/acme-challenge) หรือ DNS-01 TXT Record แล้วออกใบรับรองให้อัตโนมัติใน 10 วินาที',
+          ],
+        },
+        {
+          id: 'memory-skills',
+          codeLabel: 'LAYER 04 • WEB SERVER TLS TERMINATION',
+          titleTh: '4. จุดตัดจบการเข้ารหัสบนเซิร์ฟเวอร์ (TLS Termination & HSTS)',
+          subtitleTh:
+            'Nginx SSL Module, Cloudflare Edge, HSTS, HTTP/2 & ALPN Negotiation',
+          files: [
+            '/etc/nginx/sites-available/default',
+            'ssl_certificate / ssl_certificate_key',
+            'Strict-Transport-Security (HSTS)',
+            'ALPN (h2, http/1.1)',
+          ],
+          highlightsTh: [
+            '<strong>TLS Termination:</strong> เว็บเซิร์ฟเวอร์ Nginx หรือ CDN Edge (เช่น Cloudflare) ทำหน้าที่ถอดรหัส HTTPS ที่หน้าบ้าน จากนั้นส่งต่อคำขอไปยังแอปพลิเคชันหลังบ้าน (Node.js, Python, Go) ทำให้แอปไม่ต้องแบกรับภาระถอดรหัสเอง',
+            '<strong>HTTP to HTTPS Redirect:</strong> ดักฟังพอร์ต 80 (HTTP ธรรมดา) แล้วส่ง HTTP 301 Moved Permanently บังคับให้เบราว์เซอร์เปลี่ยนไปใช้ https:// (พอร์ต 443) เสมอ',
+            '<strong>HSTS (Strict-Transport-Security):</strong> ส่ง HTTP Header สั่งให้เบราว์เซอร์จำว่า "โดเมนนี้ต้องเข้าด้วย HTTPS เท่านั้น" เป็นเวลา 1 ปี ป้องกันการโจมตีแบบ SSL Stripping และ Man-in-the-Middle',
+          ],
+        },
+      ],
+      workflowSteps: [
+        {
+          stepNumber: 1,
+          buttonLabelTh: 'ขั้นที่ 1: Client Hello & Server Hello',
+          titleTh:
+            'ขั้นที่ 1: เริ่มต้นการเจรจา TLS 1.3 Handshake (Client & Server Hello)',
+          descriptionTh:
+            'เบราว์เซอร์ส่งข้อความ Client Hello พร้อมระบุรายการ Cipher Suites ที่รองรับ, โดเมนที่ต้องการเข้า (SNI: Server Name Indication) และค่า Key Share ของตนเอง เซิร์ฟเวอร์ตอบกลับ Server Hello เลือกอัลกอริทึมที่ดีที่สุด และส่งค่า Key Share ของเซิร์ฟเวอร์กลับมาในรอบเดียว (1-RTT)',
+          keyArtifacts: [
+            'Client Hello (SNI, Supported Ciphers, Client Key Share)',
+            'Server Hello (Selected Cipher, Server Key Share)',
+            '1-RTT Fast Negotiation',
+          ],
+        },
+        {
+          stepNumber: 2,
+          buttonLabelTh: 'ขั้นที่ 2: ส่ง Certificate & ตรวจสอบลายเซ็น',
+          titleTh:
+            'ขั้นที่ 2: เซิร์ฟเวอร์ส่งมอบใบรับรอง และเบราว์เซอร์ตรวจสอบห่วงโซ่ (Certificate Validation)',
+          descriptionTh:
+            'เซิร์ฟเวอร์ส่งใบรับรอง X.509 (fullchain.pem) มาให้เบราว์เซอร์ เบราว์เซอร์นำ Public Key ของ Intermediate CA มาตรวจสอบลายเซ็นดิจิทัลของใบรับรอง และนำ Public Key ของ Root CA ใน Trust Store มาตรวจสอบ Intermediate CA อีกทอดหนึ่ง หากถูกต้องครบถ้วนจะยืนยันว่าคุยกับตัวจริงแน่นอน',
+          keyArtifacts: [
+            'Certificate (X.509 ASN.1 Payload)',
+            'Digital Signature Verification',
+            'Chain of Trust Validation (Root -> Intermediate -> Leaf)',
+          ],
+        },
+        {
+          stepNumber: 3,
+          buttonLabelTh: 'ขั้นที่ 3: คำนวณ Session Key ผ่าน Diffie-Hellman',
+          titleTh:
+            'ขั้นที่ 3: คำนวณกุญแจลับร่วมกัน (ECDHE Shared Secret & Master Key Derivation)',
+          descriptionTh:
+            'ทั้งสองฝั่งนำค่า Key Share ของอีกฝ่ายมาคำนวณทางคณิตศาสตร์ด้วย Elliptic Curve Diffie-Hellman (ECDHE) ทำให้ทั้งไคลเอนต์และเซิร์ฟเวอร์ได้ค่ากุญแจสมมาตรชุดเดียวกัน (Symmetric Session Key) โดยที่ตัวกุญแจลับนี้ไม่เคยถูกส่งผ่านสายอินเทอร์เน็ตแม้แต่บิตเดียว',
+          keyArtifacts: [
+            'ECDHE Curve25519 Calculation',
+            'Derived Symmetric Session Key (AES-256)',
+            'Perfect Forward Secrecy Guaranteed',
+          ],
+        },
+        {
+          stepNumber: 4,
+          buttonLabelTh: 'ขั้นที่ 4: รับส่งข้อมูลผ่านการเข้ารหัส AES-GCM',
+          titleTh:
+            'ขั้นที่ 4: เริ่มการรับส่งข้อมูลจริงผ่านช่องทางเข้ารหัส (Encrypted Application Traffic)',
+          descriptionTh:
+            'หลังจาก Handshake สำเร็จ ข้อความ HTTP ทั้งหมด (URL, Headers, Cookies, Request Body, รหัสผ่าน, ข้อมูลบัตรเครดิต) จะถูกห่อหุ้มและเข้ารหัสด้วยอัลกอริทึม AES-256-GCM หรือ ChaCha20 บุคคลภายนอกที่ดักจับแพ็กเก็ตกลางทาง (Sniffer) จะเห็นเพียงข้อความขยะที่ไม่สามารถถอดรหัสได้',
+          keyArtifacts: [
+            'AES-256-GCM Authenticated Ciphertext',
+            'Encrypted HTTP Request & Response',
+            'Data Integrity Auth Tag',
+          ],
+        },
+        {
+          stepNumber: 5,
+          buttonLabelTh: 'ขั้นที่ 5: ต่ออายุใบรับรองอัตโนมัติด้วย ACME',
+          titleTh:
+            'ขั้นที่ 5: การต่ออายุใบรับรองอัตโนมัติผ่าน Let\'s Encrypt (Automated Renewal Lifecycle)',
+          descriptionTh:
+            'ใบรับรองของ Let\'s Encrypt มีอายุ 90 วัน เพื่อความปลอดภัยสูงสุด โปรแกรม Certbot ที่ติดตั้งไว้ในเซิร์ฟเวอร์จะตั้งเวลา Cron Job หรือ Systemd Timer วิ่งตรวจสอบทุกวัน หากใบรับรองเหลืออายุต่ำกว่า 30 วัน Certbot จะยิง ACME Challenge ไปยัง Let\'s Encrypt เพื่อขอไฟล์ใบรับรองใหม่และสั่ง Reload Nginx อัตโนมัติโดยที่เว็บไม่ดับ',
+          keyArtifacts: [
+            'Certbot Systemd Timer / Cron Job',
+            'HTTP-01 / DNS-01 ACME Challenge',
+            'Zero-Downtime Nginx Reload (nginx -s reload)',
+          ],
+        },
+      ],
+      contextTiers: [
+        {
+          id: 'tls-session-cache',
+          name: 'TLS Session Resumption & 0-RTT Cache',
+          subtitleTh: 'หน่วยความจำแคชกุญแจเซสชันสำหรับเชื่อมต่อซ้ำแบบทันที',
+          usagePercent: 90,
+          badgeText: 'Session Tickets (0-RTT)',
+          retentionTh:
+            'เซิร์ฟเวอร์จำค่าเซสชันไว้ใน RAM ชั่วคราว เมื่อผู้ใช้คนเดิมกลับมาเปิดหน้าถัดไป จะข้ามขั้นตอน Handshake ได้ทันที',
+        },
+        {
+          id: 'os-trust-store',
+          name: 'System Root CA Trust Store',
+          subtitleTh: 'คลังใบรับรองต้นทางที่ได้รับความเชื่อถือระดับระบบปฏิบัติการ',
+          usagePercent: 100,
+          badgeText: 'Mozilla NSS / ca-certificates',
+          retentionTh:
+            'ฝังถาวรในระบบปฏิบัติการและเบราว์เซอร์ อัปเดตผ่านแพ็กเกจระบบ เช่น apt update ca-certificates',
+        },
+        {
+          id: 'private-key-vault',
+          name: 'Server Private Key Storage (0600)',
+          subtitleTh: 'พื้นที่จัดเก็บกุญแจลับของเซิร์ฟเวอร์ที่มีการคุ้มกันสูงสุด',
+          usagePercent: 95,
+          badgeText: 'chmod 600 / privkey.pem',
+          retentionTh:
+            'เก็บถาวรใน /etc/letsencrypt/live/ โดยจำกัดสิทธิ์เฉพาะ root เท่านั้นที่อ่านได้ ห้ามแชร์หรือคอมมิตขึ้น Git',
+        },
+        {
+          id: 'ocsp-stapling',
+          name: 'OCSP Stapling & Revocation Cache',
+          subtitleTh: 'แคชสถานะความถูกต้องของใบรับรองเพื่อลดภาระการตรวจสอบ',
+          usagePercent: 75,
+          badgeText: 'OCSP Response Cache',
+          retentionTh:
+            'เซิร์ฟเวอร์ดาวน์โหลดสถานะการเพิกถอนจาก CA มาแปะไว้กับใบรับรองตนเอง เพื่อให้เบราว์เซอร์ไม่ต้องยิงไปถาม CA ซ้ำ',
+        },
+      ],
+      permissionProfiles: [
+        {
+          mode: 'Smart',
+          summaryTh:
+            'โหมด Modern HTTPS: TLS 1.3 + TLS 1.2, HSTS & Let\'s Encrypt อัตโนมัติ (แนะนำสำหรับ Production)',
+          readActionPolicyTh:
+            'รองรับเฉพาะเบราว์เซอร์และอุปกรณ์สมัยใหม่ที่ใช้ TLS 1.2 และ TLS 1.3 ปิดการใช้งาน SSLv3, TLS 1.0 และ TLS 1.1 ที่มีช่องโหว่ด้านความปลอดภัยอย่างสิ้นเชิง',
+          writeCommandPolicyTh:
+            'เปิดใช้งาน HTTP Strict Transport Security (HSTS) พร้อม max-age=31536000 บังคับให้เบราว์เซอร์ต่อตรงเข้า HTTPS เสมอ และตั้งค่า Certbot Auto-renewal',
+          blocklistPolicyTh:
+            'บล็อก Cipher Suites รุ่นเก่าที่มีช่องโหว่ เช่น RC4, 3DES, CBC Mode และปิดกั้นพอร์ต 80 โดยบังคับ 301 Redirect สู่พอร์ต 443 ทันที',
+        },
+        {
+          mode: 'Manual',
+          summaryTh:
+            'โหมด Mutual TLS (mTLS): บังคับยืนยันใบรับรองทั้งฝั่งไคลเอนต์และเซิร์ฟเวอร์ (สำหรับ Banking & Microservices)',
+          readActionPolicyTh:
+            'เซิร์ฟเวอร์จะไม่ยอมรับการเชื่อมต่อใด ๆ จนกว่าฝั่งไคลเอนต์จะส่ง Client Certificate ที่เซ็นโดย Internal CA มาให้ตรวจสอบ',
+          writeCommandPolicyTh:
+            'ใช้สำหรับการสื่อสารระหว่างเซิร์ฟเวอร์กับเซิร์ฟเวอร์ (Service-to-Service) ภายในระบบ Cloud, Kubernetes Pods หรือระบบทำธุรกรรมการเงินระดับสูง',
+          blocklistPolicyTh:
+            'บล็อกการเข้าใช้งานจากเบราว์เซอร์บุคคลทั่วไปที่ไม่มีใบรับรองส่วนบุคคลติดตั้งอยู่ในเครื่อง',
+        },
+        {
+          mode: 'Off',
+          summaryTh:
+            'โหมด Development / Local Self-Signed (mkcert / localhost สำหรับนักพัฒนา)',
+          readActionPolicyTh:
+            'ใช้สำหรับทดสอบฟีเจอร์ที่ต้องรันบน HTTPS ในเครื่องคอมพิวเตอร์ของตนเอง (เช่น Web Crypto API, Service Worker, Geolocation)',
+          writeCommandPolicyTh:
+            'สร้าง Local Certificate Authority ในเครื่องด้วยคำสั่ง mkcert -install แล้วออกใบรับรองสำหรับ localhost ไม่ต้องพึ่งพาอินเทอร์เน็ต',
+          blocklistPolicyTh:
+            'ห้ามนำใบรับรอง Self-Signed ไปใช้บนระบบ Production หรือระบบจริง เพราะเบราว์เซอร์ของลูกค้าจะขึ้นเตือนสีแดงทันที',
+        },
+      ],
+      commandGroups: [
+        {
+          groupTitleTh: '1. คำสั่ง OpenSSL ตรวจสอบและสร้างกุญแจ (OpenSSL CLI)',
+          groupDescriptionTh:
+            'เครื่องมือมาตรฐานบนระบบปฏิบัติการ Linux / macOS สำหรับจัดการกุญแจ, สร้าง CSR และตรวจสอบใบรับรอง',
+          commands: [
+            {
+              command:
+                'openssl s_client -connect example.com:443 -servername example.com',
+              usageTh:
+                'openssl s_client -connect example.com:443 -servername example.com',
+              descriptionTh:
+                'จำลองการเชื่อมต่อ TLS Handshake ไปยังเซิร์ฟเวอร์จริง พร้อมแสดงรายละเอียดห่วงโซ่ใบรับรอง (Chain of Trust), Cipher Suite ที่ใช้ และวันหมดอายุ',
+            },
+            {
+              command: 'openssl x509 -in cert.crt -noout -dates -issuer -subject',
+              usageTh:
+                'openssl x509 -in /etc/ssl/certs/cert.pem -noout -dates -issuer',
+              descriptionTh:
+                'อ่านข้อมูลจากไฟล์ใบรับรอง X.509 ในเครื่อง ตรวจสอบว่าใครเป็นผู้ออกให้ (Issuer), ออกให้ใคร (Subject) และหมดอายุวันไหน (Not Before / Not After)',
+            },
+            {
+              command: 'openssl genrsa -out server.key 2048',
+              usageTh: 'openssl genrsa -out server.key 2048',
+              descriptionTh:
+                'สร้างกุญแจลับส่วนตัว (Private Key) ชนิด RSA ขนาด 2048 บิต เก็บไว้เป็นความลับสำหรับนำไปสร้าง CSR หรือติดตั้งบนเซิร์ฟเวอร์',
+            },
+            {
+              command: 'openssl req -new -key server.key -out server.csr',
+              usageTh:
+                'openssl req -new -key server.key -out server.csr -subj "/CN=example.com"',
+              descriptionTh:
+                'สร้างคำขอออกใบรับรอง (Certificate Signing Request - CSR) โดยส่ง Public Key และข้อมูลโดเมนไปให้ผู้ให้บริการ CA เซ็นรับรอง',
+            },
+          ],
+        },
+        {
+          groupTitleTh: '2. การขอใบรับรองฟรีและต่ออายุด้วย Certbot (Let\'s Encrypt)',
+          groupDescriptionTh:
+            'โปรแกรมอัตโนมัติยอดนิยมสำหรับขอและต่ออายุ SSL/TLS ฟรีจาก Let\'s Encrypt บน Linux VPS',
+          commands: [
+            {
+              command: 'certbot --nginx -d example.com -d www.example.com',
+              usageTh:
+                'sudo certbot --nginx -d example.com -d www.example.com',
+              descriptionTh:
+                'คำสั่งมหัศจรรย์: ขอใบรับรองจาก Let\'s Encrypt, ตรวจสอบโดเมนผ่าน Nginx, และเขียนคอนฟิก SSL ในไฟล์ nginx.conf ให้เสร็จสรรพในคำสั่งเดียว',
+            },
+            {
+              command: 'certbot renew --dry-run',
+              usageTh: 'sudo certbot renew --dry-run',
+              descriptionTh:
+                'จำลองการทดสอบต่ออายุใบรับรองทั้งหมดในเครื่อง เพื่อพิสูจน์ว่าระบบต่ออายุอัตโนมัติจะทำงานได้จริงโดยไม่ติดข้อผิดพลาดก่อนถึงวันหมดอายุจริง',
+            },
+            {
+              command: 'certbot certificates',
+              usageTh: 'sudo certbot certificates',
+              descriptionTh:
+                'แสดงรายชื่อโดเมนทั้งหมดที่มีใบรับรองอยู่ในเครื่อง ที่อยู่ของไฟล์ cert/key และจำนวนวันที่เหลือก่อนหมดอายุ',
+            },
+            {
+              command: 'mkcert -install && mkcert localhost 127.0.0.1',
+              usageTh: 'mkcert -install && mkcert localhost 127.0.0.1',
+              descriptionTh:
+                'สร้าง Local Root CA ลงในเบราว์เซอร์เครื่องตนเอง และออกใบรับรองสำหรับ localhost ทำให้ทดสอบ HTTPS ในเครื่องพัฒนาได้โดยไม่ขึ้นแจ้งเตือนสีแดง',
+            },
+          ],
+        },
+        {
+          groupTitleTh:
+            '3. การคอนฟิก Nginx ปลอดภัยสูงสุดระดับ A+ (Nginx TLS Best Practices)',
+          groupDescriptionTh:
+            'การตั้งค่าเว็บเซิร์ฟเวอร์ Nginx เพื่อรองรับ HTTPS, TLS 1.3 และเปิดใช้งาน HSTS อย่างถูกต้อง',
+          commands: [
+            {
+              command: 'ssl_certificate & ssl_certificate_key',
+              usageTh:
+                'ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;\nssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;',
+              descriptionTh:
+                'ชี้ทางไปยังไฟล์ใบรับรองฉบับเต็ม (รวม Intermediate CA) และไฟล์กุญแจลับ Private Key ในบล็อก server { listen 443 ssl; }',
+            },
+            {
+              command: 'ssl_protocols TLSv1.2 TLSv1.3;',
+              usageTh: 'ssl_protocols TLSv1.2 TLSv1.3;',
+              descriptionTh:
+                'อนุญาตเฉพาะโปรโตคอล TLS เวอร์ชัน 1.2 และ 1.3 เท่านั้น ตัดทิ้งเวอร์ชันเก่าที่มีช่องโหว่เพื่อให้ได้คะแนนความปลอดภัยระดับ A+',
+            },
+            {
+              command: 'add_header Strict-Transport-Security (HSTS)',
+              usageTh:
+                'add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;',
+              descriptionTh:
+                'สั่งให้เบราว์เซอร์จำว่าต้องเข้าเว็บนี้ผ่าน HTTPS เสมอตลอดระยะเวลา 1 ปี ป้องกันการถูกดักสลับเป็น HTTP (SSL Stripping Attack)',
+            },
+            {
+              command: 'HTTP to HTTPS 301 Redirect Block',
+              usageTh:
+                'server {\n  listen 80;\n  server_name example.com;\n  return 301 https://$host$request_uri;\n}',
+              descriptionTh:
+                'บล็อก Nginx ดักรับการเข้าถึงทางพอร์ต 80 (HTTP ปกติ) แล้วส่งรหัส 301 บังคับเบราว์เซอร์ให้เปลี่ยนไปใช้ https:// ทันที',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ] as const satisfies readonly LessonTopic[];
